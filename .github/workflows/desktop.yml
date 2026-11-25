@@ -1,0 +1,40 @@
+name: Rust desktop builds
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  desktop:
+    name: Test and package (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-22.04, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - name: Linux build dependencies
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev xvfb
+      - run: cargo test --all-targets
+      - run: cargo build --release
+      - name: Windows portable executable
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          New-Item -ItemType Directory -Force dist
+          Copy-Item target/release/game-hub.exe dist/GAME-HUB.exe
+      - name: macOS application bundle
+        if: runner.os == 'macOS'
+        run: bash packaging/macos.sh
+      - name: Linux portable AppImage
+        if: runner.os == 'Linux'
+        run: bash packaging/linux.sh
+      - uses: actions/upload-artifact@v4
+        with:
+          name: GAME-HUB-${{ runner.os }}-${{ runner.arch }}
+          path: dist/*
+          if-no-files-found: error
