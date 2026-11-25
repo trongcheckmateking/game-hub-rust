@@ -35,9 +35,9 @@ fn unfinished_save_is_recovered(){
 #[test]
 fn registered_games_accept_their_lobby_and_freeze_during_pause(){
     use game_hub::core::input::PlayerFrame;
-    for e in CATALOG{let mut game=e.start(1);let frames=vec![PlayerFrame::default();e.players];game.handle_input(&frames);game.pause();
+    for e in CATALOG{for &n in e.modes{let mut game=e.start(n,1);let frames=vec![PlayerFrame::default();n];game.handle_input(&frames);game.pause();
         for _ in 0..9000{game.update(1./60.);}
-        assert!(!game.is_game_over());assert_eq!(game.get_score(),vec![0;e.players]);
-        game.resume();game.update(1./60.);
+        assert!(!game.is_game_over());assert_eq!(game.get_score(),vec![0;n]);
+        game.resume();game.update(1./60.); }
     }
 }

@@ -4,9 +4,9 @@ use std::collections::HashMap;
 macro_rules! clip{($n:literal)=>{($n,&include_bytes!(concat!("../../assets/audio/",$n,".wav"))[..])};}
 pub struct Audio {sounds:HashMap<&'static str,Sound>,track:&'static str}
 impl Audio{
-    pub async fn load()->Self{
+    pub async fn load(tracks:impl IntoIterator<Item=(&'static str,&'static [u8])>)->Self{
         let mut sounds=HashMap::new();
-        for (k,b) in [clip!("hub"),clip!("pong"),clip!("snake"),clip!("fuse-yard"),clip!("click"),clip!("hit"),clip!("pickup"),clip!("explode"),clip!("tick"),clip!("win"),clip!("lose")] {
+        for (k,b) in [clip!("hub"),clip!("click"),clip!("hit"),clip!("pickup"),clip!("explode"),clip!("tick"),clip!("win"),clip!("lose")].into_iter().chain(tracks) {
             if let Ok(s)=load_sound_from_bytes(b).await {sounds.insert(k,s);}
         }Self{sounds,track:""}
     }

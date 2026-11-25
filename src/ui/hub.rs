@@ -2,8 +2,8 @@ use super::draw::*;
 use crate::{core::save::Scores,games::CATALOG};
 use macroquad::prelude::{Font,Texture2D,Rect,vec2,DrawTextureParams,draw_texture_ex,draw_rectangle_lines,get_char_pressed,is_key_pressed,KeyCode,WHITE};
 #[derive(Default)]
-pub struct Lobby{party:usize,style:usize,query:String,pub editing:bool}
-pub enum LobbyAction{None,Settings,Choose(usize),Quit}
+pub struct Lobby{party:usize,page:usize,style:usize,query:String,pub editing:bool}
+pub enum LobbyAction{None,Settings,Choose(usize,usize),Quit}
 impl Lobby{
     pub fn show(&mut self,font:&Font,nav:&mut Nav,art:&[Texture2D],scores:&Scores,en:bool)->LobbyAction{
         let lang=|v,e|bi(en,v,e);let mut result=LobbyAction::None;
@@ -23,22 +23,31 @@ impl Lobby{
             if is_key_pressed(KeyCode::Backspace){self.query.pop();}
             if is_key_pressed(KeyCode::Escape)||is_key_pressed(KeyCode::Enter){self.editing=false;}
         }else{while get_char_pressed().is_some(){}}
-        let entries:Vec<_>=CATALOG.iter().enumerate().filter(|(_,g)|(self.party==0||self.party==g.players)
+        let entries:Vec<_>=CATALOG.iter().enumerate().filter(|(_,g)|(self.party==0||g.modes.contains(&self.party))
             &&(self.style==0||(self.style==1)==g.retro)&&g.title.to_lowercase().contains(&self.query.to_lowercase())).collect();
         if entries.is_empty(){label(font,lang("Chưa có trò phù hợp với bộ lọc.","No games match these filters."),45.,352.,28,PAPER);
             if nav.button(font,Rect::new(45.,382.,190.,42.),lang("Xóa bộ lọc","Clear filters"),false){*self=Self::default();}}
-        for(j,(idx,g)) in entries.into_iter().enumerate(){
+        let pages=entries.len().div_ceil(3);
+        self.page=self.page.min(pages.saturating_sub(1));
+        if pages>1{
+            if nav.button(font,Rect::new(817.,625.,50.,34.),"←",false){self.page=(self.page+pages-1)%pages;}
+            label(font,&format!("{} / {}",self.page+1,pages),882.,650.,18,DIM);
+            if nav.button(font,Rect::new(966.,625.,50.,34.),"→",false){self.page=(self.page+1)%pages;}
+        }
+        for(j,(idx,g)) in entries.into_iter().skip(self.page*3).take(3).enumerate(){
+            let mode=if g.modes.contains(&self.party){self.party}else{g.modes[0]};
+            let seats=g.modes.iter().map(ToString::to_string).collect::<Vec<_>>().join("/");
             let x=44.+j as f32*352.;let card=Rect::new(x,251.,333.,359.);box_fill(card,PANEL);
             draw_texture_ex(&art[idx],x,251.,WHITE,DrawTextureParams{dest_size:Some(vec2(333.,176.)),..Default::default()});
             let is_focus=nav.is_next();draw_rectangle_lines(card.x,card.y,card.w,card.h,if is_focus{4.}else{1.},if is_focus{LIME}else{EDGE});
-            label(font,&format!("{}P   /   {}",g.players,if g.retro{lang("CỔ ĐIỂN","RETRO")}else{lang("HIỆN ĐẠI","MODERN")}),x+16.,458.,17,LIME);
+            label(font,&format!("{}P   /   {}",seats,if g.retro{lang("CỔ ĐIỂN","RETRO")}else{lang("HIỆN ĐẠI","MODERN")}),x+16.,458.,17,LIME);
             label(font,g.title,x+16.,501.,34,PAPER);
             let level=if g.difficulty==1{lang("Dễ","Easy")}else{lang("Vừa","Medium")};
             label(font,&format!("{}  ·  {}",lang("Độ khó","Difficulty"),level),x+16.,537.,18,DIM);
-            let best=scores.get(&format!("{}:{}",g.id,g.players)).map(ToString::to_string).unwrap_or_else(||"—".into());
+            let best=scores.get(&format!("{}:{}",g.id,mode)).map(ToString::to_string).unwrap_or_else(||"—".into());
             label(font,&format!("{}  {}",lang("Kỷ lục","Best"),best),x+16.,582.,20,PAPER);
             label(font,"→",x+282.,584.,25,LIME);
-            if nav.hit(card){self.editing=false;result=LobbyAction::Choose(idx);}
+            if nav.hit(card){self.editing=false;result=LobbyAction::Choose(idx,mode);}
         }
         label(font,lang("↑ ↓ chọn     Enter mở     M âm thanh     F11 toàn màn hình","↑ ↓ browse     Enter open     M sound     F11 fullscreen"),46.,668.,18,DIM);
         result

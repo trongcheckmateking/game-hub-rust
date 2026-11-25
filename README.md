@@ -109,7 +109,7 @@ Rust + Macroquad dùng cùng một codebase native cho ba hệ điều hành. `g
 
 1. Tạo `src/games/<ten>/mod.rs` và một struct implement `MiniGame`. Dùng `Config.seed` cho ngẫu nhiên để tái hiện lỗi.
 2. Viết luật trong `handle_input` và `update`, vẽ ở `render`. Kết thúc bằng `ResultState::Winner(slot)` hoặc `Draw`. Slot nội bộ bắt đầu từ 0.
-3. Thêm `pub mod` và một `Entry` vào `CATALOG` ở `games/mod.rs`, gồm số người, tag, độ khó, thumbnail, hai bản hướng dẫn và factory. Thêm nhạc cùng ID vào `core/audio.rs` để dùng BGM riêng.
+3. Thêm `pub mod` và một `Entry` vào `CATALOG` ở `games/mod.rs`, gồm các số người hỗ trợ (ví dụ `&[2, 3, 4]`), tag, độ khó, thumbnail, BGM riêng, hai bản hướng dẫn và factory. Hub tự hiển thị chế độ và phân trang khi danh mục vượt quá ba thẻ.
 4. Thêm test cạnh module cho luật đặc thù. Chạy `cargo test`, sau đó kiểm tra **Hub → Hướng dẫn → Chơi → Pause → Chơi lại → Kết quả**.
 5. Commit mỗi mốc bằng mẫu `[Trong] - Mô tả thay đổi`. Khi báo lỗi, ghi tên game, số người, thiết bị, các bước tái hiện và commit đang thử.
 
