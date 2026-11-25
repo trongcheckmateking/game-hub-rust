@@ -1,0 +1,4 @@
+/target/
+/dist/
+/gamehub-backup.json
+.DS_Store
