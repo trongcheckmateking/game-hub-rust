@@ -13,7 +13,7 @@ Phase 1 triển khai ba trò ở trên. Hub có bộ lọc số người, phong 
 
 ## Chơi từ bản build
 
-Mở [GitHub Actions](../../actions/workflows/desktop.yml), chọn lần chạy đã thành công và tải **Artifact** ứng với hệ điều hành. GitHub yêu cầu đăng nhập để tải artifact. Giải nén gói tải về.
+Mở [GitHub Actions](https://github.com/trongcheckmateking/game-hub-rust/actions/workflows/desktop.yml), chọn lần chạy đã thành công và tải **Artifact** ứng với hệ điều hành. GitHub yêu cầu đăng nhập để tải artifact. Giải nén gói tải về.
 
 | Nền tảng | Mở game |
 |---|---|
@@ -35,8 +35,8 @@ sudo apt-get install build-essential pkg-config libasound2-dev libudev-dev libgl
 git clone https://github.com/trongcheckmateking/game-hub-rust.git
 cd game-hub-rust
 cargo run
-cargo test --all-targets
-cargo build --release
+cargo test --locked --all-targets
+cargo build --release --locked
 ```
 
 Lần build đầu tải crates về máy. Sau khi đã tải đủ dependency, có thể dùng `cargo run --offline`. Bản release trong `target/release/`. Các bước đóng gói native nằm trong [workflow desktop](.github/workflows/desktop.yml) và `packaging/`.
