@@ -32,7 +32,7 @@ impl Nav{
         self.count=0;self.activate=activate;
     }
     pub fn finish(&mut self){self.total=self.count;self.focus=self.focus.min(self.total.saturating_sub(1));}
-    pub fn is_next(&self)->bool{self.focus==self.count;}
+    pub fn is_next(&self)->bool{self.focus==self.count}
     pub fn reset(&mut self){self.focus=0;self.total=0;}
     pub fn hit(&mut self,r:Rect)->bool{
         let idx=self.count;self.count+=1;let over=r.contains(pointer());
