@@ -3,6 +3,9 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+concurrency:
+  group: desktop-${{ github.ref }}
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
@@ -19,6 +22,14 @@ jobs:
       - name: Linux build dependencies
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev xvfb xdotool ffmpeg libgl1-mesa-dri
+      - name: Prepare first dependency lock and formatting patch
+        if: runner.os == 'Linux' && hashFiles('Cargo.lock') == ''
+        run: |
+          cargo generate-lockfile
+          cargo fmt --all
+          git add --intent-to-add Cargo.lock
+          git diff --no-color > /tmp/gamehub-bootstrap.patch
+          cat /tmp/gamehub-bootstrap.patch
       - run: cargo test --all-targets
       - run: cargo build --release
       - name: Windows portable executable
