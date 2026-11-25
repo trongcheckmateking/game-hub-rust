@@ -18,7 +18,7 @@ jobs:
       - uses: dtolnay/rust-toolchain@stable
       - name: Linux build dependencies
         if: runner.os == 'Linux'
-        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev xvfb
+        run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev xvfb xdotool ffmpeg libgl1-mesa-dri
       - run: cargo test --all-targets
       - run: cargo build --release
       - name: Windows portable executable
@@ -38,3 +38,11 @@ jobs:
           name: GAME-HUB-${{ runner.os }}-${{ runner.arch }}
           path: dist/*
           if-no-files-found: error
+      - name: Capture native gameplay
+        if: runner.os == 'Linux'
+        run: xvfb-run -a -s "-screen 0 1120x720x24" bash scripts/demo-linux.sh target/GameHub-demo.mp4
+      - uses: actions/upload-artifact@v4
+        if: runner.os == 'Linux'
+        with:
+          name: GAME-HUB-gameplay
+          path: target/GameHub-demo.mp4
