@@ -103,4 +103,4 @@ jobs:
           arch: x86_64
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -no-snapshot
-          script: gradle -p android :app:connectedDebugAndroidTest
+          script: gradle -p android :app:connectedDebugAndroidTest || (adb logcat -d -s chromium | tail -n 80; exit 1)

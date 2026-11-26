@@ -57,13 +57,15 @@
   document.querySelector('#privacy').onclick=()=>{if(lastScene==='playing')edges[0]|=64;policy.showModal();};
   document.querySelector('#close-policy').onclick=()=>{policy.close();canvas.focus();};
   document.addEventListener('visibilitychange',()=>{if(document.hidden){active.clear();if(lastScene==='playing')edges[0]|=64;}});
-  document.querySelector('#start').onclick=()=>{
-    const btn=document.querySelector('#start');btn.disabled=true;document.querySelector('#status').textContent='Đang tải / Loading…';
+  const btn=document.querySelector('#start');
+  btn.onclick=()=>{
+    btn.disabled=true;document.querySelector('#status').textContent='Đang tải / Loading…';
     if(!window.WebAssembly || !window.WebGLRenderingContext){document.querySelector('#status').textContent='Cần WebGL và WebAssembly / Update your browser or Android System WebView.';return;}
     load(typeof GAME_HUB_WASM==='undefined'?'game-hub.wasm':URL.createObjectURL(new Blob([Uint8Array.from(atob(GAME_HUB_WASM),c=>c.charCodeAt(0))],{type:'application/wasm'})));
     const timer=setInterval(()=>{if(lastScene){clearInterval(timer);document.querySelector('#welcome').hidden=true;canvas.focus();}},50);
     setTimeout(()=>{if(!lastScene){clearInterval(timer);document.querySelector('#status').textContent='Không mở được game. Hãy tải lại hoặc cập nhật trình duyệt / WebView.';}},30000);
   };
+  btn.disabled=false;
 })();
 
 window.gameHubBack = () => {

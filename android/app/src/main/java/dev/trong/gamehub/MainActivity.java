@@ -69,7 +69,10 @@ public final class MainActivity extends Activity {
                 if ("GET".equals(request.getMethod()) && permits(u)) {
                     WebResourceResponse result = loader.shouldInterceptRequest(u);
                     if (result != null) {
-                        if ("/assets/game-hub.wasm".equals(u.getPath())) result.setMimeType("application/wasm");
+                        String path = u.getPath();
+                        if (path.endsWith(".wasm")) result.setMimeType("application/wasm");
+                        else if (path.endsWith(".js")) result.setMimeType("application/javascript");
+                        else if (path.endsWith(".css")) result.setMimeType("text/css");
                         return result;
                     }
                 }

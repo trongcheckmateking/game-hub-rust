@@ -26,7 +26,10 @@ public class OfflineSmoke {
     private void awaitJs(WebView web,String expr) throws Exception {
         long end=SystemClock.uptimeMillis()+45000;
         while(SystemClock.uptimeMillis()<end){if("true".equals(js(web,expr)))return;SystemClock.sleep(150);}
-        fail("Timed out waiting for "+expr+"; status="+js(web,"document.querySelector('#status')?.textContent"));
+        fail("Timed out waiting for "+expr+"; page="+js(web,
+            "JSON.stringify({ready:document.readyState,status:document.querySelector('#status')?.textContent,"
+            +"scene:document.body.dataset.scene,handler:typeof document.querySelector('#start')?.onclick,"
+            +"runtime:typeof miniquad_add_plugin,wasm:typeof WebAssembly,agent:navigator.userAgent})"));
     }
     @Test public void bootsGameWithoutInternetPermission() throws Exception {
         Instrumentation inst=InstrumentationRegistry.getInstrumentation();
@@ -41,7 +44,7 @@ public class OfflineSmoke {
             WebView[] holder=new WebView[1];
             inst.runOnMainSync(()->holder[0]=(WebView)((ViewGroup)activity.findViewById(android.R.id.content)).getChildAt(0));
             WebView web=holder[0];
-            awaitJs(web,"!!document.querySelector('#start')");
+            awaitJs(web,"!!document.querySelector('#start:enabled')");
             js(web,"document.querySelector('#start').click()");
             awaitJs(web,"document.body.dataset.scene === 'hub'");
             assertEquals("false",js(web,"!!window.Android"));

@@ -94,16 +94,18 @@ game-hub-rust/
 │   │   └── save.rs              JSON, backup, ghi nguyên tử
 │   ├── games/
 │   │   ├── mod.rs               Registry, metadata, factory
-│   │   ├── pong/mod.rs
-│   │   ├── snake/mod.rs
-│   │   └── fuse_yard/mod.rs
+│   │   ├── table.rs             Hàm vẽ dùng chung cho nhóm trò bàn cờ
+│   │   └── <game>/mod.rs        Mười module game trong bảng danh mục phía trên
 │   └── ui/                      Lobby, widgets, cài đặt, vòng lặp scene
 ├── assets/                      Ảnh, font, WAV nhúng sẵn
 ├── data/                        Ví dụ dữ liệu ở trạng thái ban đầu
 ├── tests/                       Test core và vòng đời game
 ├── docs/ROADMAP.md              Kế hoạch đủ 36 trò
 ├── packaging/                   Đóng gói native
-└── .github/workflows/desktop.yml
+├── web/                         Trang chơi, lớp điều khiển cảm ứng và chính sách riêng tư
+├── android/                     App Android, kiểm thử trên máy ảo, kiểm tra quyền
+├── scripts/                     Đóng gói web, quay demo và thử trình duyệt offline
+└── .github/workflows/           Build và kiểm thử desktop, web, Android
 ```
 
 ```mermaid
