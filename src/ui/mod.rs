@@ -52,7 +52,18 @@ pub async fn run() {
     let mut notice = String::new();
     loop {
         #[cfg(target_arch = "wasm32")]
-        crate::platform::web::scene(match scene {Scene::Hub=>0,Scene::Tutorial=>1,Scene::Playing=>2,Scene::Paused=>3,Scene::Settings=>4,Scene::End=>5},n,saves.settings.english);
+        crate::platform::web::scene(
+            match scene {
+                Scene::Hub => 0,
+                Scene::Tutorial => 1,
+                Scene::Playing => 2,
+                Scene::Paused => 3,
+                Scene::Settings => 4,
+                Scene::End => 5,
+            },
+            n,
+            saves.settings.english,
+        );
         let before = scene;
         let en = saves.settings.english;
         let lang = |v, e| bi(en, v, e);
@@ -237,7 +248,10 @@ pub async fn run() {
                                 notice = e.to_string();
                             }
                             audio.effect(
-                                if matches!(game.round().result,ResultState::Draw|ResultState::Defeat) {
+                                if matches!(
+                                    game.round().result,
+                                    ResultState::Draw | ResultState::Defeat
+                                ) {
                                     "lose"
                                 } else {
                                     "win"

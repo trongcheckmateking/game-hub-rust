@@ -66,10 +66,12 @@ fn bad() -> io::Error {
 }
 #[cfg(not(target_arch = "wasm32"))]
 fn read<T: DeserializeOwned>(path: &Path) -> io::Result<T> {
-    let mut bytes=Vec::new();
+    let mut bytes = Vec::new();
     use std::io::Read;
     fs::File::open(path)?.take(65537).read_to_end(&mut bytes)?;
-    if bytes.len()>65536 { return Err(bad()); }
+    if bytes.len() > 65536 {
+        return Err(bad());
+    }
     serde_json::from_slice(&bytes).map_err(io::Error::from)
 }
 #[cfg(not(target_arch = "wasm32"))]
@@ -165,26 +167,74 @@ pub fn record(scores: &mut Scores, id: &str, n: usize, points: &[u32]) {
 }
 
 impl Save {
-    fn valid(&self)->bool {
-        self.settings.valid() && self.highscores.len()<=512 && self.highscores.keys().all(|key|{
-            let Some((id,mode))=key.rsplit_once(':') else {return false};
-            !id.is_empty() && id.len()<=48 && id.bytes().all(|c|c.is_ascii_lowercase()||c.is_ascii_digit()||c==b'-') && matches!(mode,"1"|"2"|"3"|"4")
-        })
+    fn valid(&self) -> bool {
+        self.settings.valid()
+            && self.highscores.len() <= 512
+            && self.highscores.keys().all(|key| {
+                let Some((id, mode)) = key.rsplit_once(':') else {
+                    return false;
+                };
+                !id.is_empty()
+                    && id.len() <= 48
+                    && id
+                        .bytes()
+                        .all(|c| c.is_ascii_lowercase() || c.is_ascii_digit() || c == b'-')
+                    && matches!(mode, "1" | "2" | "3" | "4")
+            })
     }
 }
 #[cfg(target_arch = "wasm32")]
 impl Store {
-    pub fn local()->Self{Self{root:PathBuf::new()}}
-    pub fn load(&self)->io::Result<Save>{
-        let Some(bytes)=crate::platform::web::read(0)? else{return Ok(Save::default());};
-        let save:Save=serde_json::from_slice(&bytes)?;
-        if !save.valid(){return Err(bad());}Ok(save)
+    pub fn local() -> Self {
+        Self {
+            root: PathBuf::new(),
+        }
     }
-    pub fn replace(&self,s:&Save)->io::Result<()>{if !s.valid(){return Err(bad());}crate::platform::web::write(0,&serde_json::to_vec(s)?)}
-    pub fn settings(&self,s:&Settings)->io::Result<()>{let mut v=self.load()?;v.settings=s.clone();self.replace(&v)}
-    pub fn scores(&self,s:&Scores)->io::Result<()>{let mut v=self.load()?;v.highscores=s.clone();self.replace(&v)}
-    pub fn backup(&self)->PathBuf{PathBuf::from("GAME HUB / local backup")}
-    pub fn export(&self,s:&Save)->io::Result<()>{crate::platform::web::write(1,&serde_json::to_vec(&Backup{version:1,save:s.clone()})?)}
-    pub fn import(&self)->io::Result<Save>{let bytes=crate::platform::web::read(1)?.ok_or_else(bad)?;
-        let b:Backup=serde_json::from_slice(&bytes)?;if b.version!=1{return Err(bad());}self.replace(&b.save)?;Ok(b.save)}
+    pub fn load(&self) -> io::Result<Save> {
+        let Some(bytes) = crate::platform::web::read(0)? else {
+            return Ok(Save::default());
+        };
+        let save: Save = serde_json::from_slice(&bytes)?;
+        if !save.valid() {
+            return Err(bad());
+        }
+        Ok(save)
+    }
+    pub fn replace(&self, s: &Save) -> io::Result<()> {
+        if !s.valid() {
+            return Err(bad());
+        }
+        crate::platform::web::write(0, &serde_json::to_vec(s)?)
+    }
+    pub fn settings(&self, s: &Settings) -> io::Result<()> {
+        let mut v = self.load()?;
+        v.settings = s.clone();
+        self.replace(&v)
+    }
+    pub fn scores(&self, s: &Scores) -> io::Result<()> {
+        let mut v = self.load()?;
+        v.highscores = s.clone();
+        self.replace(&v)
+    }
+    pub fn backup(&self) -> PathBuf {
+        PathBuf::from("GAME HUB / local backup")
+    }
+    pub fn export(&self, s: &Save) -> io::Result<()> {
+        crate::platform::web::write(
+            1,
+            &serde_json::to_vec(&Backup {
+                version: 1,
+                save: s.clone(),
+            })?,
+        )
+    }
+    pub fn import(&self) -> io::Result<Save> {
+        let bytes = crate::platform::web::read(1)?.ok_or_else(bad)?;
+        let b: Backup = serde_json::from_slice(&bytes)?;
+        if b.version != 1 {
+            return Err(bad());
+        }
+        self.replace(&b.save)?;
+        Ok(b.save)
+    }
 }

@@ -1,5 +1,8 @@
 use super::draw::*;
-use crate::{core::save::Scores, games::{Era,CATALOG}};
+use crate::{
+    core::save::Scores,
+    games::{Era, CATALOG},
+};
 use macroquad::prelude::{
     draw_rectangle_lines, draw_texture_ex, get_char_pressed, is_key_pressed, vec2,
     DrawTextureParams, Font, KeyCode, Rect, Texture2D, WHITE,
@@ -66,17 +69,18 @@ impl Lobby {
                 &s,
                 self.party == *n,
             ) {
-                self.party = *n;self.page=0;
+                self.party = *n;
+                self.page = 0;
             }
         }
-        let style=if self.style==0 {lang("Mọi thời kỳ","All eras")}else{Era::ALL[self.style-1].label(en)};
-        if nav.button(
-            font,
-            Rect::new(396., 176., 180., 40.),
-            style,
-            false,
-        ) {
-            self.style = (self.style + 1) % (Era::ALL.len()+1);self.page=0;
+        let style = if self.style == 0 {
+            lang("Mọi thời kỳ", "All eras")
+        } else {
+            Era::ALL[self.style - 1].label(en)
+        };
+        if nav.button(font, Rect::new(396., 176., 180., 40.), style, false) {
+            self.style = (self.style + 1) % (Era::ALL.len() + 1);
+            self.page = 0;
         }
         let sr = Rect::new(635., 176., 445., 40.);
         let search = if self.query.is_empty() {
@@ -107,7 +111,7 @@ impl Lobby {
             .enumerate()
             .filter(|(_, g)| {
                 (self.party == 0 || g.modes.contains(&self.party))
-                    && (self.style == 0 || Era::ALL[self.style-1] == g.era)
+                    && (self.style == 0 || Era::ALL[self.style - 1] == g.era)
                     && g.title.to_lowercase().contains(&self.query.to_lowercase())
             })
             .collect();
@@ -186,11 +190,7 @@ impl Lobby {
             );
             label(
                 font,
-                &format!(
-                    "{}P   /   {}",
-                    seats,
-                    g.era.label(en)
-                ),
+                &format!("{}P   /   {}", seats, g.era.label(en)),
                 x + 16.,
                 458.,
                 17,

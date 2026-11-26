@@ -88,8 +88,12 @@ fn registered_games_accept_their_lobby_and_freeze_during_pause() {
 #[test]
 fn catalog_covers_all_party_sizes_and_history_filters() {
     use game_hub::games::Era;
-    for seats in 1..=4 {assert!(CATALOG.iter().any(|e|e.modes.contains(&seats)));}
-    for era in Era::ALL {assert!(CATALOG.iter().any(|e|e.era==era));}
-    let ids:std::collections::HashSet<_>=CATALOG.iter().map(|e|e.id).collect();
-    assert_eq!(ids.len(),CATALOG.len());
+    for seats in 1..=4 {
+        assert!(CATALOG.iter().any(|e| e.modes.contains(&seats)));
+    }
+    for era in Era::ALL {
+        assert!(CATALOG.iter().any(|e| e.era == era));
+    }
+    let ids: std::collections::HashSet<_> = CATALOG.iter().map(|e| e.id).collect();
+    assert_eq!(ids.len(), CATALOG.len());
 }

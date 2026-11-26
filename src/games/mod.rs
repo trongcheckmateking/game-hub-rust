@@ -1,27 +1,45 @@
-mod table;
-pub mod ur;
-pub mod caro;
-pub mod stones;
-pub mod tiles;
-pub mod echo;
 pub mod beacon;
-pub mod hill;
+pub mod caro;
+pub mod echo;
 pub mod fuse_yard;
+pub mod hill;
 pub mod pong;
 pub mod snake;
+pub mod stones;
+mod table;
+pub mod tiles;
+pub mod ur;
 use macroquad::prelude::Color;
 pub fn color(slot: usize) -> Color {
     Color::from_hex([0xadf56e, 0x79bdff, 0xff927e, 0xffdb74][slot])
 }
 use crate::core::game::{Config, MiniGame};
-#[derive(Clone,Copy,Debug,PartialEq,Eq)]
-pub enum Era { Ancient, Traditional, Classic, Modern }
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum Era {
+    Ancient,
+    Traditional,
+    Classic,
+    Modern,
+}
 impl Era {
-    pub const ALL:[Self;4]=[Self::Ancient,Self::Traditional,Self::Classic,Self::Modern];
-    pub fn label(self,en:bool)->&'static str{match(self,en){
-        (Self::Ancient,false)=>"Cổ đại",(Self::Traditional,false)=>"Dân gian",(Self::Classic,false)=>"Cổ điển",(Self::Modern,false)=>"Hiện đại",
-        (Self::Ancient,true)=>"Ancient",(Self::Traditional,true)=>"Traditional",(Self::Classic,true)=>"Classic",(Self::Modern,true)=>"Modern",
-    }}
+    pub const ALL: [Self; 4] = [
+        Self::Ancient,
+        Self::Traditional,
+        Self::Classic,
+        Self::Modern,
+    ];
+    pub fn label(self, en: bool) -> &'static str {
+        match (self, en) {
+            (Self::Ancient, false) => "Cổ đại",
+            (Self::Traditional, false) => "Dân gian",
+            (Self::Classic, false) => "Cổ điển",
+            (Self::Modern, false) => "Hiện đại",
+            (Self::Ancient, true) => "Ancient",
+            (Self::Traditional, true) => "Traditional",
+            (Self::Classic, true) => "Classic",
+            (Self::Modern, true) => "Modern",
+        }
+    }
 }
 pub struct Entry {
     pub id: &'static str,

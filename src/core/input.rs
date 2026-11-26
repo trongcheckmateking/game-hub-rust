@@ -104,9 +104,13 @@ impl Default for Input {
 impl Input {
     pub fn count(&self) -> usize {
         #[cfg(not(target_arch = "wasm32"))]
-        { self.slots.iter().flatten().count() }
+        {
+            self.slots.iter().flatten().count()
+        }
         #[cfg(target_arch = "wasm32")]
-        { crate::platform::web::pads() }
+        {
+            crate::platform::web::pads()
+        }
     }
     pub fn poll(&mut self, n: usize, keys: &Bindings) {
         let down: HashSet<_> = get_keys_down()
@@ -153,7 +157,10 @@ impl Input {
             #[cfg(target_arch = "wasm32")]
             let (bits, taps) = crate::platform::web::input(p);
             #[cfg(target_arch = "wasm32")]
-            { joy = std::array::from_fn(|a|bits & (1 << a) != 0);start |= (bits | taps) & 64 != 0; }
+            {
+                joy = std::array::from_fn(|a| bits & (1 << a) != 0);
+                start |= (bits | taps) & 64 != 0;
+            }
             for (a, &j) in joy.iter().enumerate() {
                 let v = names(p, a, n, keys);
                 let edge = j && !self.previous[p][a];
