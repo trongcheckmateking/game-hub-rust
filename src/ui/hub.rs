@@ -1,5 +1,5 @@
 use super::draw::*;
-use crate::{core::save::Scores, games::CATALOG};
+use crate::{core::save::Scores, games::{Era,CATALOG}};
 use macroquad::prelude::{
     draw_rectangle_lines, draw_texture_ex, get_char_pressed, is_key_pressed, vec2,
     DrawTextureParams, Font, KeyCode, Rect, Texture2D, WHITE,
@@ -45,6 +45,7 @@ impl Lobby {
         ) {
             result = LobbyAction::Settings;
         }
+        #[cfg(not(target_arch = "wasm32"))]
         if nav.button(
             font,
             Rect::new(1011., 99., 70., 43.),
@@ -53,7 +54,7 @@ impl Lobby {
         ) {
             result = LobbyAction::Quit;
         }
-        for (i, n) in [0, 2, 3, 4].iter().enumerate() {
+        for (i, n) in [0, 1, 2, 3, 4].iter().enumerate() {
             let s = if *n == 0 {
                 lang("Tất cả", "All").to_owned()
             } else {
@@ -61,25 +62,21 @@ impl Lobby {
             };
             if nav.button(
                 font,
-                Rect::new(44. + i as f32 * 83., 176., 75., 40.),
+                Rect::new(44. + i as f32 * 67., 176., 63., 40.),
                 &s,
                 self.party == *n,
             ) {
-                self.party = *n;
+                self.party = *n;self.page=0;
             }
         }
-        let styles = [
-            lang("Mọi thể loại", "All styles"),
-            lang("Cổ điển", "Retro"),
-            lang("Hiện đại", "Modern"),
-        ];
+        let style=if self.style==0 {lang("Mọi thời kỳ","All eras")}else{Era::ALL[self.style-1].label(en)};
         if nav.button(
             font,
             Rect::new(396., 176., 180., 40.),
-            styles[self.style],
+            style,
             false,
         ) {
-            self.style = (self.style + 1) % 3;
+            self.style = (self.style + 1) % (Era::ALL.len()+1);self.page=0;
         }
         let sr = Rect::new(635., 176., 445., 40.);
         let search = if self.query.is_empty() {
@@ -110,7 +107,7 @@ impl Lobby {
             .enumerate()
             .filter(|(_, g)| {
                 (self.party == 0 || g.modes.contains(&self.party))
-                    && (self.style == 0 || (self.style == 1) == g.retro)
+                    && (self.style == 0 || Era::ALL[self.style-1] == g.era)
                     && g.title.to_lowercase().contains(&self.query.to_lowercase())
             })
             .collect();
@@ -192,11 +189,7 @@ impl Lobby {
                 &format!(
                     "{}P   /   {}",
                     seats,
-                    if g.retro {
-                        lang("CỔ ĐIỂN", "RETRO")
-                    } else {
-                        lang("HIỆN ĐẠI", "MODERN")
-                    }
+                    g.era.label(en)
                 ),
                 x + 16.,
                 458.,

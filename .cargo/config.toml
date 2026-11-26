@@ -1,0 +1,3 @@
+[target.wasm32-unknown-unknown]
+# miniquad, quad-snd and the local save/input adapter are supplied by our JS host.
+rustflags = ["-C", "link-arg=--allow-undefined"]

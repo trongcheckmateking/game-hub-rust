@@ -7,6 +7,7 @@ pub enum ResultState {
     #[default]
     Playing,
     Winner(usize),
+    Defeat,
     Draw,
 }
 #[derive(Clone, Copy, Debug, PartialEq)]

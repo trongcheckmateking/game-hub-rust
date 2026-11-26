@@ -237,7 +237,7 @@ pub async fn run() {
                                 notice = e.to_string();
                             }
                             audio.effect(
-                                if game.round().result == ResultState::Draw {
+                                if matches!(game.round().result,ResultState::Draw|ResultState::Defeat) {
                                     "lose"
                                 } else {
                                     "win"
@@ -289,6 +289,7 @@ pub async fn run() {
                         ResultState::Winner(i) => {
                             format!("P{} {}", i + 1, lang("chiến thắng!", "wins!"))
                         }
+                        ResultState::Defeat => lang("Thử lại nhé!", "Try again!").into(),
                         _ => lang("Hòa!", "Draw!").into(),
                     }
                 };
