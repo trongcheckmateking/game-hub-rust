@@ -8,21 +8,25 @@ game_pid=''; capture_pid=''
 cleanup() {
   if [[ -n "$capture_pid" ]]; then kill -INT "$capture_pid" 2>/dev/null || true; fi
   if [[ -n "$game_pid" ]]; then kill "$game_pid" 2>/dev/null || true; fi
+  if [[ -n "${sink:-}" ]]; then pactl unload-module "$sink" 2>/dev/null || true; fi
   rm -rf "$work"
 }
 trap cleanup EXIT
+pulseaudio --start --exit-idle-time=-1
+sink=$(pactl load-module module-null-sink sink_name=gamehub_demo)
+pactl set-default-sink gamehub_demo
 cat > "$work/asound.conf" <<'ALSA'
-pcm.!default { type null }
-ctl.!default { type hw card 0 }
+pcm.!default { type pulse }
+ctl.!default { type pulse }
 ALSA
-export ALSA_CONFIG_PATH="$work/asound.conf" XDG_DATA_HOME="$work/data" LIBGL_ALWAYS_SOFTWARE=1
+export PULSE_SINK=gamehub_demo ALSA_CONFIG_PATH="$work/asound.conf" XDG_DATA_HOME="$work/data" LIBGL_ALWAYS_SOFTWARE=1
 ./target/release/game-hub >"$work/game.log" 2>&1 & game_pid=$!
 if ! wid=$(timeout 22 xdotool search --sync --onlyvisible --name '^GAME HUB$' | head -1); then
   cat "$work/game.log"; exit 1
 fi
 xdotool windowsize "$wid" 1120 720 windowmove "$wid" 0 0 windowfocus "$wid"
 sleep 1
-ffmpeg -nostdin -loglevel error -f x11grab -draw_mouse 0 -video_size 1120x720 -framerate 24 -i "$DISPLAY" -vf scale=896:576 -c:v libx264 -preset veryfast -pix_fmt yuv420p -movflags +faststart -y "$out" & capture_pid=$!
+ffmpeg -nostdin -loglevel error -f x11grab -draw_mouse 0 -video_size 1120x720 -framerate 24 -i "$DISPLAY" -thread_queue_size 512 -f pulse -i gamehub_demo.monitor -c:a aac -b:a 96k -vf scale=896:576 -c:v libx264 -preset veryfast -pix_fmt yuv420p -movflags +faststart -y "$out" & capture_pid=$!
 click() { xdotool mousemove --window "$wid" "$1" "$2" click 1; sleep 0.32; }
 sleep 1
 for card in 200 565 900; do

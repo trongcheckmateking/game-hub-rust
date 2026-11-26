@@ -18,10 +18,10 @@ Mở [GitHub Actions](https://github.com/trongcheckmateking/game-hub-rust/action
 | Nền tảng | Mở game |
 |---|---|
 | Windows | Chạy `GAME-HUB.exe`. |
-| macOS | Giải nén `GAME-HUB-macOS.zip` rồi mở `GAME HUB.app`. Gói dùng chữ ký ad-hoc, chưa notarize. Kiến trúc CPU ghi trên tên artifact. |
+| macOS | Giải nén `GAME-HUB-macOS.zip` rồi mở `GAME HUB.app`. Gói dùng chữ ký ad-hoc, chưa notarize. Gói Universal chạy trên cả Intel và Apple Silicon. |
 | Linux x86_64 | `chmod +x GAME-HUB-x86_64.AppImage` rồi chạy `./GAME-HUB-x86_64.AppImage`. Nếu hệ thống thiếu FUSE, dùng `./GAME-HUB-x86_64.AppImage --appimage-extract-and-run`. |
 
-Tất cả hình, font và nhạc được nhúng vào chương trình. Sau khi tải, có thể ngắt mạng để chơi. Linux cần môi trường desktop có OpenGL, âm thanh ALSA và quyền truy cập thiết bị tay cầm.
+Tất cả hình, font và nhạc được nhúng vào chương trình. Sau khi tải, có thể ngắt mạng để chơi. Artifact `GAME-HUB-gameplay` chứa clip quay giao diện và âm thanh trực tiếp từ bản Linux. Linux cần môi trường desktop có OpenGL, âm thanh ALSA và quyền truy cập thiết bị tay cầm.
 
 ## Chạy từ source
 

@@ -2,7 +2,15 @@
 set -eu
 app='dist/GAME HUB.app'
 mkdir -p "$app/Contents/MacOS"
-cp target/release/game-hub "$app/Contents/MacOS/game-hub"
+case "$(uname -m)" in
+  arm64) other_target=x86_64-apple-darwin ;;
+  x86_64) other_target=aarch64-apple-darwin ;;
+  *) echo "Unsupported macOS build host" >&2; exit 1 ;;
+esac
+rustup target add "$other_target"
+cargo build --release --locked --target "$other_target"
+lipo -create target/release/game-hub "target/$other_target/release/game-hub" -output "$app/Contents/MacOS/game-hub"
+lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/game-hub"
 cat > "$app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0"><dict>
