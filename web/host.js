@@ -60,7 +60,8 @@
     lastScene=name;lastParty=n;lastLang=en;document.body.dataset.scene=name;
     document.body.dataset.players=String(n);panel.hidden=name!=='playing';pause.hidden=!['playing','paused'].includes(name);
     pause.textContent=name==='paused'?(en?'Resume':'Tiếp tục'):(en?'Pause':'Tạm dừng');
-    window.dispatchEvent(new Event('resize'));
+    // Rust calls this from inside its frame. Resize only after that call returns.
+    if(!window.ResizeObserver)requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
   }
   miniquad_add_plugin({name:'gamehub',version:1,register_plugin(imports){Object.assign(imports.env,{
     hub_buttons:buttons,hub_pad_count:()=>connected,

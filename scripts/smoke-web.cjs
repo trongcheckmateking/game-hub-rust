@@ -6,7 +6,7 @@ const path=require('path');
  const b=await chromium.launch({executablePath:process.env.CHROME_BIN || '/usr/bin/google-chrome',headless:true,args:['--no-sandbox','--use-gl=angle','--use-angle=swiftshader','--enable-unsafe-swiftshader']});
  try {
  const ctx=await b.newContext({viewport:mobile?{width:915,height:412}:{width:1200,height:820},hasTouch:mobile,isMobile:mobile,deviceScaleFactor:1});
- const page=await ctx.newPage();const issues=[];page.on('pageerror',e=>issues.push(e.message));page.on('console',m=>{if(['error','warning'].includes(m.type()))issues.push(m.text().slice(0,260));});
+ const page=await ctx.newPage();const issues=[],errors=[];page.on('pageerror',e=>errors.push(e.message));page.on('console',m=>{if(['error','warning'].includes(m.type()))issues.push(m.text().slice(0,260));});
  await ctx.setOffline(true);await page.goto(pathToFileURL(path.resolve('dist/GAME-HUB-Offline.html')).href);
  await page.locator('#start').click();try{await page.waitForFunction(()=>document.body.dataset.scene==='hub',{},{timeout:16000});}catch(e){throw Error('boot '+JSON.stringify(issues)+' status '+await page.locator('#status').textContent());}
  async function click(x,y){const r=await page.locator('#glcanvas').boundingBox();const s=Math.min(r.width/1120,r.height/720);const px=r.x+(r.width-1120*s)/2+x*s,py=r.y+(r.height-720*s)/2+y*s;
@@ -42,6 +42,7 @@ const path=require('path');
      throw Error('Canvas or touch controls clipped: '+JSON.stringify(layout));
  }
  await page.screenshot({path:'target/hockey-'+(mobile?'mobile':'web')+'.png'});
+ if(errors.length)throw Error('Runtime errors during play: '+errors.join(', '));
  console.log('offline',mobile?'mobile':'desktop','Ur 1P, stones 3P, Air Hockey 2P, pause, privacy passed',issues);
  }finally{await b.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

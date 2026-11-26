@@ -43,10 +43,12 @@ done
 # All -> page four, second card. Record the actual two-player rink through the launcher.
 for _ in 1 2 3; do click 988 642; done
 click 553 355
+sleep 0.8
 click 155 621
+sleep 0.8
 xdotool keydown d keydown Left; sleep 0.55; xdotool keyup d keyup Left
 xdotool keydown s keydown Up; sleep 0.32; xdotool keyup s keyup Up
-sleep 1.5
+sleep 3.2
 kill -0 "$game_pid" || { cat "$work/game.log"; exit 1; }
 kill -INT "$capture_pid"; wait "$capture_pid" || [[ $? == 255 ]]; capture_pid=''
 test -s "$out"
