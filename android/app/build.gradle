@@ -1,0 +1,32 @@
+plugins { id 'com.android.application' }
+android {
+    namespace 'dev.trong.gamehub'
+    compileSdk 36
+    defaultConfig {
+        applicationId 'dev.trong.gamehub'
+        minSdk 26
+        targetSdk 36
+        versionCode 2
+        versionName '0.2.0'
+        testInstrumentationRunner 'androidx.test.runner.AndroidJUnitRunner'
+    }
+    buildFeatures { buildConfig true }
+    sourceSets.main.assets.srcDirs = ["../../dist/web"]
+    buildTypes {
+        debug { applicationIdSuffix '.debug' }
+        release { debuggable false; minifyEnabled false }
+    }
+}
+dependencies {
+    implementation 'androidx.webkit:webkit:1.12.1'
+    androidTestImplementation 'androidx.test.ext:junit:1.2.1'
+    androidTestImplementation 'androidx.test:runner:1.6.2'
+}
+def verifyAssets = tasks.register('verifyOfflineGame') {
+    doLast {
+        ['game-hub.wasm','index.html','vendor/mq_js_bundle.js','host.js'].each {
+            if (!file("../../dist/web/$it").isFile()) throw new GradleException("Build the Rust web edition first. Missing $it")
+        }
+    }
+}
+tasks.named('preBuild').configure { dependsOn verifyAssets }

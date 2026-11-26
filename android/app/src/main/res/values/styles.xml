@@ -1,0 +1,4 @@
+<resources><style name="GameHubTheme" parent="android:style/Theme.Material.NoActionBar">
+  <item name="android:windowBackground">#111b1b</item><item name="android:statusBarColor">#111b1b</item>
+  <item name="android:navigationBarColor">#111b1b</item><item name="android:colorAccent">#bdf082</item>
+</style></resources>

@@ -65,3 +65,15 @@
     setTimeout(()=>{if(!lastScene){clearInterval(timer);document.querySelector('#status').textContent='Không mở được game. Hãy tải lại hoặc cập nhật trình duyệt / WebView.';}},30000);
   };
 })();
+
+window.gameHubBack = () => {
+  const modal=document.querySelector('#policy');
+  if(modal.open){modal.close();return true;}
+  const active=document.body.dataset.scene;
+  if(!active||active==='hub')return false;
+  const key=active==='paused'?'Backspace':'Escape';
+  const view=document.querySelector('#glcanvas');
+  view.dispatchEvent(new KeyboardEvent('keydown',{code:key,key,bubbles:true}));
+  setTimeout(()=>view.dispatchEvent(new KeyboardEvent('keyup',{code:key,key,bubbles:true})),65);
+  return true;
+};
