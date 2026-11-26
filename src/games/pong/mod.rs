@@ -89,7 +89,9 @@ impl MiniGame for Pong {
             }
         }
     }
-    fn render(&self) { self.render_interpolated(1.); }
+    fn render(&self) {
+        self.render_interpolated(1.);
+    }
     fn render_interpolated(&self, alpha: f32) {
         draw_rectangle(0., 0., 960., 540., Color::from_hex(0x172c40));
         let line = Color::from_hex(0x426078);
@@ -100,15 +102,15 @@ impl MiniGame for Pong {
         }
         for (i, y) in self.pads.iter().enumerate() {
             let y = self.previous_pads[i] + (y - self.previous_pads[i]) * alpha;
-            let x = [48.,912.][i];
-            draw_line(x,y-48.,x,y+48.,12.,super::color(i));
-            draw_circle(x,y-48.,6.,super::color(i));
-            draw_circle(x,y+48.,6.,super::color(i));
+            let x = [48., 912.][i];
+            draw_line(x, y - 48., x, y + 48., 12., super::color(i));
+            draw_circle(x, y - 48., 6., super::color(i));
+            draw_circle(x, y + 48., 6., super::color(i));
         }
-        let ball = self.previous_ball.lerp(self.ball,alpha);
-        draw_circle(ball.x+1.,ball.y+2.,8.5,Color::from_hex(0x102234));
-        draw_circle(ball.x,ball.y,8.,Color::from_hex(0xffecb8));
-        draw_circle(ball.x-2.,ball.y-2.,2.4,WHITE);
+        let ball = self.previous_ball.lerp(self.ball, alpha);
+        draw_circle(ball.x + 1., ball.y + 2., 8.5, Color::from_hex(0x102234));
+        draw_circle(ball.x, ball.y, 8., Color::from_hex(0xffecb8));
+        draw_circle(ball.x - 2., ball.y - 2., 2.4, WHITE);
     }
 }
 #[cfg(test)]

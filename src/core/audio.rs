@@ -36,7 +36,11 @@ impl Audio {
                 sounds.insert(k, s);
             }
         }
-        Self { sounds, track: "", volume: 0.0 }
+        Self {
+            sounds,
+            track: "",
+            volume: 0.0,
+        }
     }
     pub fn music(&mut self, k: &'static str, s: &Settings) {
         let volume = if s.muted { 0.0 } else { s.bgm };

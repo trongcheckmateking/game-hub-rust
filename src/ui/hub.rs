@@ -4,8 +4,8 @@ use crate::{
     games::{Era, CATALOG},
 };
 use macroquad::prelude::{
-    get_frame_time, draw_texture_ex, get_char_pressed, is_key_pressed, vec2,
-    DrawTextureParams, Font, KeyCode, Rect, Texture2D, WHITE,
+    draw_texture_ex, get_char_pressed, get_frame_time, is_key_pressed, vec2, DrawTextureParams,
+    Font, KeyCode, Rect, Texture2D, WHITE,
 };
 #[derive(Default)]
 pub struct Lobby {
@@ -108,25 +108,41 @@ impl Lobby {
             while get_char_pressed().is_some() {}
         }
         if self.seats.is_empty() {
-            self.seats=CATALOG.iter().map(|g| {
-                let first=g.modes[0];
-                let last=g.modes[g.modes.len()-1];
-                if g.modes.len()==1 { format!("{first}P") }
-                else if g.modes.windows(2).all(|n| n[1]==n[0]+1) { format!("{first}–{last}P") }
-                else { format!("{}P",g.modes.iter().map(ToString::to_string).collect::<Vec<_>>().join("/")) }
-            }).collect();
+            self.seats = CATALOG
+                .iter()
+                .map(|g| {
+                    let first = g.modes[0];
+                    let last = g.modes[g.modes.len() - 1];
+                    if g.modes.len() == 1 {
+                        format!("{first}P")
+                    } else if g.modes.windows(2).all(|n| n[1] == n[0] + 1) {
+                        format!("{first}–{last}P")
+                    } else {
+                        format!(
+                            "{}P",
+                            g.modes
+                                .iter()
+                                .map(ToString::to_string)
+                                .collect::<Vec<_>>()
+                                .join("/")
+                        )
+                    }
+                })
+                .collect();
         }
-        if !self.filter.as_ref().is_some_and(|(party,style,q)| {
-            *party==self.party && *style==self.style && q==&self.query
+        if !self.filter.as_ref().is_some_and(|(party, style, q)| {
+            *party == self.party && *style == self.style && q == &self.query
         }) {
-            let query=self.query.to_lowercase();
+            let query = self.query.to_lowercase();
             self.matches.clear();
-            self.matches.extend(CATALOG.iter().enumerate().filter_map(|(i,g)| {
-                ((self.party==0 || g.modes.contains(&self.party))
-                    && (self.style==0 || Era::ALL[self.style-1]==g.era)
-                    && (query.is_empty() || g.title.to_lowercase().contains(&query))).then_some(i)
-            }));
-            self.filter=Some((self.party,self.style,self.query.clone()));
+            self.matches
+                .extend(CATALOG.iter().enumerate().filter_map(|(i, g)| {
+                    ((self.party == 0 || g.modes.contains(&self.party))
+                        && (self.style == 0 || Era::ALL[self.style - 1] == g.era)
+                        && (query.is_empty() || g.title.to_lowercase().contains(&query)))
+                    .then_some(i)
+                }));
+            self.filter = Some((self.party, self.style, self.query.clone()));
         }
         if self.matches.is_empty() {
             label(
@@ -168,7 +184,7 @@ impl Lobby {
             }
         }
         for (j, &idx) in self.matches.iter().skip(self.page * 3).take(3).enumerate() {
-            let g=&CATALOG[idx];
+            let g = &CATALOG[idx];
             let mode = if g.modes.contains(&self.party) {
                 self.party
             } else {
@@ -176,21 +192,41 @@ impl Lobby {
             };
             let seats = &self.seats[idx];
             let x = 44. + j as f32 * 352.;
-            let hitbox=Rect::new(x,251.,333.,359.);
-            let focus=nav.is_next();
-            let active=focus || hitbox.contains(pointer());
-            if self.visible[j]!=Some(idx) {
-                self.visible[j]=Some(idx);
-                self.lift[j]=0.;
+            let hitbox = Rect::new(x, 251., 333., 359.);
+            let focus = nav.is_next();
+            let active = focus || hitbox.contains(pointer());
+            if self.visible[j] != Some(idx) {
+                self.visible[j] = Some(idx);
+                self.lift[j] = 0.;
             }
-            let target=if active {1.} else {0.};
-            self.lift[j]+=(target-self.lift[j]) * (1.-(-get_frame_time().min(0.1)*16.).exp());
-            let dy=-5.*self.lift[j];
-            let card=Rect::new(x,251.+dy,333.,359.);
-            nav.panel(card,20.,if focus {LIME} else if active {DIM} else {EDGE},PANEL,if focus {2.5} else {1.});
-            draw_texture_ex(&art[idx],x+8.,card.y+8.,WHITE,DrawTextureParams {
-                dest_size:Some(vec2(317.,167.)), ..Default::default()
-            });
+            let target = if active { 1. } else { 0. };
+            self.lift[j] +=
+                (target - self.lift[j]) * (1. - (-get_frame_time().min(0.1) * 16.).exp());
+            let dy = -5. * self.lift[j];
+            let card = Rect::new(x, 251. + dy, 333., 359.);
+            nav.panel(
+                card,
+                20.,
+                if focus {
+                    LIME
+                } else if active {
+                    DIM
+                } else {
+                    EDGE
+                },
+                PANEL,
+                if focus { 2.5 } else { 1. },
+            );
+            draw_texture_ex(
+                &art[idx],
+                x + 8.,
+                card.y + 8.,
+                WHITE,
+                DrawTextureParams {
+                    dest_size: Some(vec2(317., 167.)),
+                    ..Default::default()
+                },
+            );
             label(
                 font,
                 &format!("{}   /   {}", seats, g.era.label(en)),

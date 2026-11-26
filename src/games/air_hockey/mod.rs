@@ -29,7 +29,10 @@ impl AirHockey {
         self.trail.fill(CENTER);
         self.mallets = [vec2(193., 270.), vec2(767., 270.)];
         self.old_mallets = self.mallets;
-        self.velocity = vec2(direction * 245., (next_random(&mut self.seed) % 121) as f32 - 60.);
+        self.velocity = vec2(
+            direction * 245.,
+            (next_random(&mut self.seed) % 121) as f32 - 60.,
+        );
         self.countdown = 0.65;
         self.impact = 0.;
     }
@@ -63,9 +66,14 @@ impl AirHockey {
     fn advance(&mut self, dt: f32) {
         let previous = self.mallets;
         for (i, pos) in self.mallets.iter_mut().enumerate() {
-            let (left, right) = if i == 0 { (RAIL, CENTER.x) } else { (CENTER.x, 960. - RAIL) };
+            let (left, right) = if i == 0 {
+                (RAIL, CENTER.x)
+            } else {
+                (CENTER.x, 960. - RAIL)
+            };
             *pos = (*pos + self.input[i] * (410. * dt)).clamp(
-                vec2(left + MALLET, RAIL + MALLET), vec2(right - MALLET, 540. - RAIL - MALLET),
+                vec2(left + MALLET, RAIL + MALLET),
+                vec2(right - MALLET, 540. - RAIL - MALLET),
             );
         }
         if self.countdown > 0. {
@@ -94,104 +102,140 @@ impl AirHockey {
                 self.puck.x = x;
             }
         }
-        if self.puck.x < RAIL - PUCK { self.score(1); }
-        else if self.puck.x > 960. - RAIL + PUCK { self.score(0); }
+        if self.puck.x < RAIL - PUCK {
+            self.score(1);
+        } else if self.puck.x > 960. - RAIL + PUCK {
+            self.score(0);
+        }
     }
 
     fn paint(&self, alpha: f32) {
         let c = Color::from_hex;
         draw_rectangle(0., 0., 960., 540., c(0x10272d));
         let line = c(0x38616a);
-        draw_rectangle(RAIL, RAIL, 960.-2.*RAIL, 540.-2.*RAIL, c(0x173d43));
-        draw_line(480., RAIL, 480., 540.-RAIL, 2., line);
+        draw_rectangle(RAIL, RAIL, 960. - 2. * RAIL, 540. - 2. * RAIL, c(0x173d43));
+        draw_line(480., RAIL, 480., 540. - RAIL, 2., line);
         draw_circle_lines(480., 270., 78., 3., line);
         draw_circle(480., 270., 5., line);
-        for x in [RAIL, 960.-RAIL] {
-            for (from,to) in [(RAIL,270.-GOAL),(270.+GOAL,540.-RAIL)] {
+        for x in [RAIL, 960. - RAIL] {
+            for (from, to) in [(RAIL, 270. - GOAL), (270. + GOAL, 540. - RAIL)] {
                 draw_line(x, from, x, to, 7., c(0x89b5ae));
-                draw_circle(x,from,3.5,c(0x89b5ae));
-                draw_circle(x,to,3.5,c(0x89b5ae));
+                draw_circle(x, from, 3.5, c(0x89b5ae));
+                draw_circle(x, to, 3.5, c(0x89b5ae));
             }
         }
-        for y in [RAIL, 540.-RAIL] { draw_line(RAIL,y,960.-RAIL,y,6.,c(0x89b5ae)); }
+        for y in [RAIL, 540. - RAIL] {
+            draw_line(RAIL, y, 960. - RAIL, y, 6., c(0x89b5ae));
+        }
         let puck = self.trail[0].lerp(self.puck, alpha);
         for i in (1..self.trail.len()).rev() {
-            let t=1.-i as f32/self.trail.len() as f32;
-            let p=self.trail[i].lerp(self.trail[i-1],alpha);
-            draw_circle(p.x,p.y,PUCK*(0.38+0.55*t),Color::new(0.60,0.95,0.89,t*0.19));
+            let t = 1. - i as f32 / self.trail.len() as f32;
+            let p = self.trail[i].lerp(self.trail[i - 1], alpha);
+            draw_circle(
+                p.x,
+                p.y,
+                PUCK * (0.38 + 0.55 * t),
+                Color::new(0.60, 0.95, 0.89, t * 0.19),
+            );
         }
         for (i, &current) in self.mallets.iter().enumerate() {
-            let p=self.old_mallets[i].lerp(current,alpha);
-            let tint=[c(0xabebdb),c(0xff9c86)][i];
-            draw_circle(p.x+2.,p.y+5.,MALLET+1.,c(0x102e33));
-            draw_circle(p.x,p.y,MALLET,tint);
-            draw_circle(p.x,p.y+1.,MALLET*0.63,c(0x376268));
-            draw_circle(p.x,p.y-3.,MALLET*0.55,tint);
-            draw_circle(p.x-5.,p.y-8.,4.,Color::new(1.,1.,1.,0.45));
+            let p = self.old_mallets[i].lerp(current, alpha);
+            let tint = [c(0xabebdb), c(0xff9c86)][i];
+            draw_circle(p.x + 2., p.y + 5., MALLET + 1., c(0x102e33));
+            draw_circle(p.x, p.y, MALLET, tint);
+            draw_circle(p.x, p.y + 1., MALLET * 0.63, c(0x376268));
+            draw_circle(p.x, p.y - 3., MALLET * 0.55, tint);
+            draw_circle(p.x - 5., p.y - 8., 4., Color::new(1., 1., 1., 0.45));
         }
-        draw_circle(puck.x+1.,puck.y+3.,PUCK,c(0x102e33));
-        draw_circle(puck.x,puck.y,PUCK,c(0xfaf4d7));
-        draw_circle(puck.x,puck.y,PUCK-4.,c(0xddc89a));
+        draw_circle(puck.x + 1., puck.y + 3., PUCK, c(0x102e33));
+        draw_circle(puck.x, puck.y, PUCK, c(0xfaf4d7));
+        draw_circle(puck.x, puck.y, PUCK - 4., c(0xddc89a));
         if self.impact > 0. {
-            draw_circle_lines(puck.x,puck.y,PUCK+4.+(1.-self.impact)*17.,2.,Color::new(0.82,1.,0.9,self.impact*0.65));
+            draw_circle_lines(
+                puck.x,
+                puck.y,
+                PUCK + 4. + (1. - self.impact) * 17.,
+                2.,
+                Color::new(0.82, 1., 0.9, self.impact * 0.65),
+            );
         }
     }
 }
 impl MiniGame for AirHockey {
-    fn init(&mut self,n:usize,config:Config) {
-        assert_eq!(n,2);
-        *self=Self{round:Round::new(n),seed:config.seed,..Self::default()};
-        self.serve(if config.seed & 1 == 0 {1.} else {-1.});
+    fn init(&mut self, n: usize, config: Config) {
+        assert_eq!(n, 2);
+        *self = Self {
+            round: Round::new(n),
+            seed: config.seed,
+            ..Self::default()
+        };
+        self.serve(if config.seed & 1 == 0 { 1. } else { -1. });
     }
-    fn round(&self)->&Round { &self.round }
-    fn round_mut(&mut self)->&mut Round { &mut self.round }
-    fn handle_input(&mut self,players:&[PlayerFrame]) {
-        for (v,p) in self.input.iter_mut().zip(players) {
-            *v=vec2((p.held[3] as i8-p.held[2] as i8) as f32,(p.held[1] as i8-p.held[0] as i8) as f32).normalize_or_zero();
+    fn round(&self) -> &Round {
+        &self.round
+    }
+    fn round_mut(&mut self) -> &mut Round {
+        &mut self.round
+    }
+    fn handle_input(&mut self, players: &[PlayerFrame]) {
+        for (v, p) in self.input.iter_mut().zip(players) {
+            *v = vec2(
+                (p.held[3] as i8 - p.held[2] as i8) as f32,
+                (p.held[1] as i8 - p.held[0] as i8) as f32,
+            )
+            .normalize_or_zero();
         }
     }
-    fn update(&mut self,dt:f32) {
-        if !self.round.running() || dt <= 0. { return; }
-        self.old_mallets=self.mallets;
+    fn update(&mut self, dt: f32) {
+        if !self.round.running() || dt <= 0. {
+            return;
+        }
+        self.old_mallets = self.mallets;
         self.trail.rotate_right(1);
-        self.trail[0]=self.puck;
-        self.impact=(self.impact-dt*4.).max(0.);
+        self.trail[0] = self.puck;
+        self.impact = (self.impact - dt * 4.).max(0.);
         for _ in 0..2 {
-            self.advance(dt*0.5);
-            if !self.round.running() { break; }
+            self.advance(dt * 0.5);
+            if !self.round.running() {
+                break;
+            }
         }
     }
-    fn render(&self) { self.paint(1.); }
-    fn render_interpolated(&self, alpha:f32) { self.paint(alpha); }
+    fn render(&self) {
+        self.paint(1.);
+    }
+    fn render_interpolated(&self, alpha: f32) {
+        self.paint(alpha);
+    }
 }
 #[cfg(test)]
 mod tests {
     use super::*;
     #[test]
     fn rails_bounce_and_only_open_goals_score() {
-        let mut g=AirHockey::default();
-        g.init(2,Config{seed:10});
-        g.countdown=0.;
-        g.puck=vec2(50.,90.);
-        g.velocity=vec2(-600.,0.);
-        g.update(1./60.);
-        assert!(g.velocity.x>0.);
-        assert_eq!(g.round.score,[0,0]);
-        g.round.score[1]=4;
-        g.puck=vec2(25.,270.);
-        g.velocity=vec2(-600.,0.);
-        g.update(1./60.);
-        assert_eq!(g.round.result,ResultState::Winner(1));
+        let mut g = AirHockey::default();
+        g.init(2, Config { seed: 10 });
+        g.countdown = 0.;
+        g.puck = vec2(50., 90.);
+        g.velocity = vec2(-600., 0.);
+        g.update(1. / 60.);
+        assert!(g.velocity.x > 0.);
+        assert_eq!(g.round.score, [0, 0]);
+        g.round.score[1] = 4;
+        g.puck = vec2(25., 270.);
+        g.velocity = vec2(-600., 0.);
+        g.update(1. / 60.);
+        assert_eq!(g.round.result, ResultState::Winner(1));
     }
     #[test]
     fn moving_mallet_transfers_momentum_to_puck() {
-        let mut g=AirHockey::default();
-        g.init(2,Config{seed:0});
-        g.countdown=0.;
-        g.puck=g.mallets[0]+vec2(MALLET+PUCK+1.,0.);
-        g.velocity=Vec2::ZERO;
-        g.input[0]=Vec2::X;
-        g.update(1./60.);
-        assert!(g.velocity.x>200. && g.velocity.length()<=MAX_SPEED);
+        let mut g = AirHockey::default();
+        g.init(2, Config { seed: 0 });
+        g.countdown = 0.;
+        g.puck = g.mallets[0] + vec2(MALLET + PUCK + 1., 0.);
+        g.velocity = Vec2::ZERO;
+        g.input[0] = Vec2::X;
+        g.update(1. / 60.);
+        assert!(g.velocity.x > 200. && g.velocity.length() <= MAX_SPEED);
     }
 }

@@ -5,22 +5,38 @@
   let lastScene='', lastParty=0, lastLang=-1;
   const keys=['game-hub.save.v1','game-hub.backup.v1'], encoder=new TextEncoder(), decoder=new TextDecoder();
   const sceneNames=['hub','tutorial','playing','paused','settings','end'];
+  // Snapshot browser gamepads once for all four Rust slots in this frame.
+  let devices=[], connected=0;
   function refreshPads() {
-    let devices=[];
-    try { devices=Array.from(navigator.getGamepads?.() ?? []).filter(p=>p && p.connected && p.mapping==='standard'); } catch {}
-    for(let i=0;i<4;i++) if(!devices.some(p=>p.index===slots[i])) slots[i]=null;
-    for(const p of devices) if(!slots.includes(p.index) && slots.includes(null)) slots[slots.indexOf(null)]=p.index;
-    return slots.map(id=>devices.find(p=>p.index===id));
+    try { devices=navigator.getGamepads?.() ?? []; } catch { devices=[]; }
+    connected=0;
+    for(let i=0;i<slots.length;i++){
+      const id=slots[i], p=id===null?null:devices[id];
+      if(!p?.connected || p.mapping!=='standard') slots[i]=null;
+    }
+    for(const p of devices){
+      if(!p?.connected || p.mapping!=='standard')continue;
+      if(!slots.includes(p.index)){
+        const next=slots.indexOf(null);
+        if(next!==-1)slots[next]=p.index;
+      }
+    }
+    for(const id of slots)if(id!==null)connected++;
   }
-  let pads=[];
-  function buttons(p) {
-    if(p===0) pads=refreshPads();
+  function buttons(player) {
+    if(player===0)refreshPads();
     let bits=0;
-    for(const v of active.values()) if(v.player===p) bits|=v.bit;
-    const gp=pads[p];
-    if(gp) {
-      const on=i=>gp.buttons[i]?.pressed,x=gp.axes[0]||0,y=gp.axes[1]||0;
-      [on(12)||y<-.4,on(13)||y>.4,on(14)||x<-.4,on(15)||x>.4,on(0),on(1),on(9)].forEach((v,i)=>{if(v)bits|=1<<i;});
+    for(const v of active.values())if(v.player===player)bits|=v.bit;
+    const id=slots[player], gp=id===null?null:devices[id];
+    if(gp){
+      const b=gp.buttons, x=gp.axes[0]||0, y=gp.axes[1]||0;
+      if(b[12]?.pressed||y < -0.4)bits|=1;
+      if(b[13]?.pressed||y > 0.4)bits|=2;
+      if(b[14]?.pressed||x < -0.4)bits|=4;
+      if(b[15]?.pressed||x > 0.4)bits|=8;
+      if(b[0]?.pressed)bits|=16;
+      if(b[1]?.pressed)bits|=32;
+      if(b[9]?.pressed)bits|=64;
     }
     return bits;
   }
@@ -47,7 +63,7 @@
     window.dispatchEvent(new Event('resize'));
   }
   miniquad_add_plugin({name:'gamehub',version:1,register_plugin(imports){Object.assign(imports.env,{
-    hub_buttons:buttons,hub_pad_count:()=>pads.filter(Boolean).length,
+    hub_buttons:buttons,hub_pad_count:()=>connected,
     hub_edges(p){const n=edges[p];edges[p]=0;return n;},hub_scene:syncScene,
     hub_read(slot,addr,cap){try{const s=localStorage.getItem(keys[slot]);if(s===null)return -1;if(s.length>65536)return -2;
       const bytes=encoder.encode(s);if(addr){if(bytes.length>cap)return -2;new Uint8Array(wasm_memory.buffer,addr,bytes.length).set(bytes);}return bytes.length;}catch{return -2;}},

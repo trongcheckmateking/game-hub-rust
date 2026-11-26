@@ -83,11 +83,75 @@ fn key_code(name: &str) -> Option<KeyCode> {
             _ => None,
         } };
     }
-    keys!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
-          Key0, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9,
-          Kp0, Kp1, Kp2, Kp3, Kp4, Kp5, Kp6, Kp7, Kp8, Kp9, KpEnter, KpDecimal,
-          KpAdd, KpSubtract, Up, Down, Left, Right, Enter, Space, LeftShift, RightShift,
-          Comma, Period, Slash, Semicolon, Apostrophe, Minus, Equal, LeftBracket, RightBracket)
+    keys!(
+        A,
+        B,
+        C,
+        D,
+        E,
+        F,
+        G,
+        H,
+        I,
+        J,
+        K,
+        L,
+        M,
+        N,
+        O,
+        P,
+        Q,
+        R,
+        S,
+        T,
+        U,
+        V,
+        W,
+        X,
+        Y,
+        Z,
+        Key0,
+        Key1,
+        Key2,
+        Key3,
+        Key4,
+        Key5,
+        Key6,
+        Key7,
+        Key8,
+        Key9,
+        Kp0,
+        Kp1,
+        Kp2,
+        Kp3,
+        Kp4,
+        Kp5,
+        Kp6,
+        Kp7,
+        Kp8,
+        Kp9,
+        KpEnter,
+        KpDecimal,
+        KpAdd,
+        KpSubtract,
+        Up,
+        Down,
+        Left,
+        Right,
+        Enter,
+        Space,
+        LeftShift,
+        RightShift,
+        Comma,
+        Period,
+        Slash,
+        Semicolon,
+        Apostrophe,
+        Minus,
+        Equal,
+        LeftBracket,
+        RightBracket
+    )
 }
 
 #[derive(Default)]
@@ -103,9 +167,14 @@ impl Keyboard {
         }
         self.party = party;
         self.bindings.clone_from(bindings);
-        self.codes = std::array::from_fn(|p| std::array::from_fn(|a| {
-            names(p, a, party, bindings).iter().filter_map(|name| key_code(name)).collect()
-        }));
+        self.codes = std::array::from_fn(|p| {
+            std::array::from_fn(|a| {
+                names(p, a, party, bindings)
+                    .iter()
+                    .filter_map(|name| key_code(name))
+                    .collect()
+            })
+        });
     }
 }
 pub struct Input {

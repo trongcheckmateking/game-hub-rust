@@ -67,7 +67,8 @@ impl MiniGame for Hill {
                 .clamp(vec2(23., 23.), vec2(937., 517.));
         }
         let h = self.center();
-        let mut inside = (0..self.pos.len()).filter(|&i| self.pos[i].distance_squared(h) <= 66. * 66.);
+        let mut inside =
+            (0..self.pos.len()).filter(|&i| self.pos[i].distance_squared(h) <= 66. * 66.);
         if let (Some(i), None) = (inside.next(), inside.next()) {
             self.credit[i] += dt;
             while self.credit[i] >= 0.5 {
