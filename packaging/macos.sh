@@ -10,7 +10,7 @@ esac
 rustup target add "$other_target"
 cargo build --release --locked --target "$other_target"
 lipo -create target/release/game-hub "target/$other_target/release/game-hub" -output "$app/Contents/MacOS/game-hub"
-lipo -verify_arch arm64 x86_64 "$app/Contents/MacOS/game-hub"
+lipo "$app/Contents/MacOS/game-hub" -verify_arch arm64 x86_64
 cat > "$app/Contents/Info.plist" <<'PLIST'
 <?xml version="1.0" encoding="UTF-8"?>
 <plist version="1.0"><dict>
