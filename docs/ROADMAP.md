@@ -1,5 +1,7 @@
 # Danh mục 36 trò
 
+Bản hiện tại có **10 trò**. Ngoài 3 trò Phase 1, Caro (#7) và Neon Hill (#32) đã triển khai sớm. Năm trò ngoài danh sách 36 là Ur Sprint, Bốc sỏi, 15 Tiles, Echo Steps và Beacon Rush. Các mốc dưới đây là phân bổ ban đầu.
+
 Phase 1 có 3 trò. Phase 2 bổ sung 10 trò gồm các game cổ điển và hai biến thể 3P. Phase 3 bổ sung 23 trò, Party theo chuỗi, thành tích theo game và tinh chỉnh giao diện. Số ID giữ nguyên theo đề bài.
 
 | ID | Phase | Trò | Số người | Luật hoặc mục tiêu |

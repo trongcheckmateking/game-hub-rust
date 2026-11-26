@@ -49,6 +49,11 @@ jobs:
       - name: Verify release artifacts
         run: |
           bundle=android/app/build/outputs/bundle/release/app-release.aab
+          curl --fail --retry 3 -Lo /tmp/bundletool.jar https://github.com/google/bundletool/releases/download/1.18.2/bundletool-all-1.18.2.jar
+          echo "378b5434cd1378bef6b2bc527b8c7f0ff2584b273830335bce54d6d0813c8584  /tmp/bundletool.jar" | sha256sum -c -
+          java -jar /tmp/bundletool.jar validate --bundle="$bundle"
+          java -jar /tmp/bundletool.jar dump manifest --bundle="$bundle" --module=base > /tmp/gamehub-release.xml
+          python3 android/verify-bundle.py /tmp/gamehub-release.xml
           unzip -t "$bundle"
           unzip -Z1 "$bundle" | grep -Fx 'base/assets/game-hub.wasm'
           if unzip -Z1 "$bundle" | grep -E '^base/lib/.+\.so$'; then exit 1; fi

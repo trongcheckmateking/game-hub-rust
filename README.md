@@ -1,15 +1,27 @@
 # GAME HUB · Rust
 
-Bộ trò chơi arcade **offline cho bạn bè ngồi cùng một máy tính**. Chọn số người, mở thẻ game, xem luật rồi vào trận. Hai người có thể đấu Pong hoặc Snake Duel. Khi đủ bốn người, Fuse Yard biến cùng một màn hình thành đấu trường đặt lõi xung.
+Arcade offline cho **1–4 người** trên cùng một máy. Chọn số người và thời kỳ trong lobby, mở thẻ game, xem luật rồi vào trận. Có bản desktop Rust, web WebAssembly và Android chơi bằng cảm ứng.
 
-| Pong · 2P | Snake Duel · 2P | Fuse Yard · 4P |
-|---|---|---|
-| ![Pong](assets/art/pong.png) | ![Snake Duel](assets/art/snake.png) | ![Fuse Yard](assets/art/fuse-yard.png) |
-| Đánh bóng bằng mép vợt để đổi góc. Đạt 7 điểm trước để thắng. | Tranh mồi và tránh va chạm. Hai đầu rắn đi vào cùng một ô thì hòa. | Chọn trục ngang hoặc dọc. Lõi đang nổ có thể kích hoạt lõi khác. |
+| Game | Thời kỳ trong hub | Số người | Kiểu chơi |
+|---|---|---|---|
+| Ur Sprint | Cổ đại | 1–2 | Đua 3 quân, tung hạt, bắt quân và tận dụng ô hoa. Solo đấu máy. |
+| Bốc sỏi | Dân gian | 1–4 | Lấy 1–3 viên mỗi lượt. Người lấy viên cuối thắng. Solo đấu máy. |
+| Caro | Cổ điển | 1–2 | Nối năm quân, solo đấu máy hoặc thay phiên. |
+| 15 Tiles | Cổ điển | 1 | Giải bàn 15 ô xáo bằng các nước hợp lệ. |
+| Pong | Cổ điển | 2 | Trả bóng bằng mép vợt, đạt 7 điểm trước. |
+| Snake Duel | Cổ điển | 2 | Tranh mồi và sống sót trước đối thủ. |
+| Fuse Yard | Hiện đại | 4 | Đặt lõi, đổi trục nổ và kích nổ dây chuyền. |
+| Echo Steps | Hiện đại | 1–4 | Nhớ chuỗi hướng qua 5 cấp, thay phiên trên cùng máy. |
+| Beacon Rush | Hiện đại | 1–4 | Mỗi người bấm A sau tín hiệu xanh. Tính điểm qua 5 lượt. |
+| Neon Hill | Hiện đại | 2–4 | Đứng một mình trong vùng để ghi điểm và tăng tốc khi cần. |
 
-## Phạm vi
+Ur Sprint là biến thể rút gọn do dự án thiết kế, lấy cảm hứng từ bàn cờ Ur của Lưỡng Hà. Nhãn thời kỳ giúp tìm nguồn cảm hứng hoặc phong cách trò chơi. Luật mỗi bản có trong tutorial.
 
-Phase 1 triển khai ba trò ở trên. Hub có bộ lọc số người, phong cách, tìm theo tên, hướng dẫn, tạm dừng, kết quả, lưu kỷ lục, tùy chỉnh phím, tiếng Việt / English và hai kiểu chữ. Mục 3P trong lobby dành cho hai trò mở đầu Phase 2. Danh sách 36 trò cùng tiêu chí nghiệm thu nằm trong [roadmap](docs/ROADMAP.md).
+## Web và Android
+
+- **Web offline** tải artifact `GAME-HUB-Web-Offline`, giải nén rồi mở `GAME-HUB-Offline.html` trong trình duyệt hiện đại có WebGL. Có thể ngắt mạng trước khi mở. Gói `GAME-HUB-Web` chứa website tĩnh để đưa lên HTTPS hoặc chạy `python3 -m http.server` trong thư mục đã giải nén.
+- **Android** tải `GAME-HUB-Android`, giải nén và cài `app-debug.apk` để thử. Game đã nằm trong app. Nhấn **Vào hub / Play** để mở âm thanh. Trong trận trên màn hình cảm ứng, mỗi vị trí có cụm hướng và nút A/B riêng. Với bốn người, máy tính bảng hoặc tay cầm dễ thao tác hơn điện thoại nhỏ.
+- **Phát hành** dùng `app-release.aab` trong cùng artifact. Gói chờ chủ tài khoản ký và nộp qua Play Console. [Build web/Android](https://github.com/trongcheckmateking/game-hub-rust/actions/workflows/web-android.yml) · [Quy trình Google Play](docs/ANDROID-PLAY.md)
 
 ## Chơi từ bản build
 
@@ -40,6 +52,8 @@ cargo build --release --locked
 ```
 
 Lần build đầu tải crates về máy. Sau khi đã tải đủ dependency, có thể dùng `cargo run --offline`. Bản release trong `target/release/`. Các bước đóng gói native nằm trong [workflow desktop](.github/workflows/desktop.yml) và `packaging/`.
+
+Xem [roadmap các trò gốc](docs/ROADMAP.md) để đối chiếu bản đã có và các mục tiếp theo.
 
 ## Bàn phím và tay cầm
 
@@ -116,3 +130,5 @@ Rust + Macroquad dùng cùng một codebase native cho ba hệ điều hành. `g
 ## Save và backup
 
 Game ghi `settings.json` và `highscores.json` vào thư mục dữ liệu của tài khoản hệ điều hành. Đường dẫn cụ thể hiện ở **Cài đặt → Dữ liệu trên máy**. Mỗi kỷ lục được lưu theo cặp game và số người, ví dụ `snake:2`. **Xuất backup** ghi `gamehub-backup.json` vào đường dẫn hiển thị. Sao chép file này đến cùng vị trí trên máy mới và chọn **Nhập backup**. Xóa dữ liệu yêu cầu xác nhận, bản backup đã xuất vẫn dùng được. Font DejaVu đi kèm [giấy phép](assets/fonts/LICENSE.txt).
+
+Trên web/Android, game dùng bộ nhớ riêng của origin. Xuất/nhập trong game lưu và phục hồi một bản chụp cục bộ trên cùng trình duyệt/ứng dụng. Xóa dữ liệu trình duyệt hoặc gỡ app có thể xóa cả bản này.
