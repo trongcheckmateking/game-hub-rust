@@ -1,0 +1,9 @@
+<!doctype html><html lang="vi"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self'; connect-src 'self'; img-src 'self' data:; media-src blob:; object-src 'none'; base-uri 'none'; form-action 'none'">
+<title>GAME HUB</title><link rel="stylesheet" href="hub.css"></head>
+<body><main><canvas id="glcanvas" tabindex="0" aria-label="GAME HUB"></canvas>
+<section id="welcome"><h1>GAME HUB</h1><button id="start">Vào hub / Play</button><p role="status" id="status"></p></section></main>
+<div id="controls" hidden></div><footer><button id="pause" hidden>Ⅱ</button><button id="privacy">Quyền riêng tư / Privacy</button></footer>
+<dialog id="policy"><h2>GAME HUB · Quyền riêng tư</h2><p>Điểm, cài đặt và bản sao lưu ở trên thiết bị. Game không dùng tài khoản, quảng cáo, theo dõi hoặc gửi dữ liệu chơi cho nhà phát triển.</p><p>Game scores, settings and backups stay on this device. No account, ads, analytics or transmission of gameplay to the developer. A web host may process its own network request logs when serving the web edition.</p><p>Liên hệ về quyền riêng tư / Contact: github.com/trongcheckmateking/game-hub-rust/issues. Đừng đăng thông tin cá nhân trong issue công khai.</p><button id="close-policy">Đóng / Close</button></dialog>
+<script src="vendor/mq_js_bundle.js"></script><script src="host.js"></script></body></html>

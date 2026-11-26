@@ -2,3 +2,4 @@
 pub mod core;
 pub mod games;
 pub mod ui;
+pub mod platform;

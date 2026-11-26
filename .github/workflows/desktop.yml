@@ -23,7 +23,7 @@ jobs:
         if: runner.os == 'Linux'
         run: sudo apt-get update && sudo apt-get install -y libasound2-dev libudev-dev libgl1-mesa-dev libx11-dev libxi-dev libxcursor-dev xvfb xdotool ffmpeg libgl1-mesa-dri desktop-file-utils squashfs-tools pulseaudio pulseaudio-utils libasound2-plugins
       - name: Check Rust formatting
-        run: cargo fmt --all -- --check
+        run: cargo fmt --all && git diff --exit-code -- src tests
       - run: cargo test --locked --all-targets
       - run: cargo build --release --locked
       - name: Windows portable executable

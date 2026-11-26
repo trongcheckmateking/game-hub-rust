@@ -2,13 +2,15 @@
 name = "game-hub"
 version = "0.1.0"
 edition = "2021"
-description = "An offline, same-screen arcade for two to four players"
+description = "An offline, same-screen arcade for one to four players"
 publish = false
 
 [dependencies]
 macroquad = { version = "=0.4.14", features = ["audio"] }
-gilrs = "=0.11.0"
 serde = { version = "1", features = ["derive"] }
 serde_json = "1"
+
+[target.'cfg(not(target_arch = "wasm32"))'.dependencies]
+gilrs = "=0.11.0"
 directories = "6"
 tempfile = "3"

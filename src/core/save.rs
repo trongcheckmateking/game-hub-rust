@@ -1,4 +1,5 @@
 use super::input::{can_bind, Bindings};
+#[cfg(not(target_arch = "wasm32"))]
 use directories::ProjectDirs;
 use serde::{de::DeserializeOwned, Deserialize, Serialize};
 use std::{
@@ -7,6 +8,7 @@ use std::{
     io::{self, Write},
     path::{Path, PathBuf},
 };
+#[cfg(not(target_arch = "wasm32"))]
 use tempfile::NamedTempFile;
 pub const SETTINGS_FILE: &str = "settings.json";
 pub type Scores = BTreeMap<String, u32>;
@@ -62,9 +64,15 @@ struct Backup {
 fn bad() -> io::Error {
     io::Error::new(io::ErrorKind::InvalidData, "Invalid GAME HUB data")
 }
+#[cfg(not(target_arch = "wasm32"))]
 fn read<T: DeserializeOwned>(path: &Path) -> io::Result<T> {
-    serde_json::from_slice(&fs::read(path)?).map_err(io::Error::from)
+    let mut bytes=Vec::new();
+    use std::io::Read;
+    fs::File::open(path)?.take(65537).read_to_end(&mut bytes)?;
+    if bytes.len()>65536 { return Err(bad()); }
+    serde_json::from_slice(&bytes).map_err(io::Error::from)
 }
+#[cfg(not(target_arch = "wasm32"))]
 fn atomic<T: Serialize>(path: &Path, value: &T) -> io::Result<()> {
     let root = path.parent().ok_or_else(bad)?;
     fs::create_dir_all(root)?;
@@ -75,6 +83,7 @@ fn atomic<T: Serialize>(path: &Path, value: &T) -> io::Result<()> {
     tmp.persist(path).map_err(|e| e.error)?;
     Ok(())
 }
+#[cfg(not(target_arch = "wasm32"))]
 fn read_or_default<T: DeserializeOwned + Default>(file: &Path) -> io::Result<T> {
     match read(file) {
         Err(e) if e.kind() == io::ErrorKind::NotFound => Ok(T::default()),
@@ -84,6 +93,7 @@ fn read_or_default<T: DeserializeOwned + Default>(file: &Path) -> io::Result<T> 
 pub struct Store {
     pub root: PathBuf,
 }
+#[cfg(not(target_arch = "wasm32"))]
 impl Store {
     pub fn local() -> Self {
         Self {
@@ -104,7 +114,7 @@ impl Store {
             settings: read_or_default(&self.root.join(SETTINGS_FILE))?,
             highscores: read_or_default(&self.root.join("highscores.json"))?,
         };
-        if !s.settings.valid() {
+        if !s.valid() {
             return Err(bad());
         }
         Ok(s)
@@ -119,7 +129,7 @@ impl Store {
         atomic(&self.root.join("highscores.json"), v)
     }
     pub fn replace(&self, s: &Save) -> io::Result<()> {
-        if !s.settings.valid() {
+        if !s.valid() {
             return Err(bad());
         }
         let j = self.root.join("pending.json");
@@ -142,7 +152,7 @@ impl Store {
     }
     pub fn import(&self) -> io::Result<Save> {
         let b: Backup = read(&self.backup())?;
-        if b.version != 1 || !b.save.settings.valid() {
+        if b.version != 1 || !b.save.valid() {
             return Err(bad());
         }
         self.replace(&b.save)?;
@@ -152,4 +162,29 @@ impl Store {
 pub fn record(scores: &mut Scores, id: &str, n: usize, points: &[u32]) {
     let best = scores.entry(format!("{id}:{n}")).or_default();
     *best = (*best).max(points.iter().copied().max().unwrap_or(0));
+}
+
+impl Save {
+    fn valid(&self)->bool {
+        self.settings.valid() && self.highscores.len()<=512 && self.highscores.keys().all(|key|{
+            let Some((id,mode))=key.rsplit_once(':') else {return false};
+            !id.is_empty() && id.len()<=48 && id.bytes().all(|c|c.is_ascii_lowercase()||c.is_ascii_digit()||c==b'-') && matches!(mode,"1"|"2"|"3"|"4")
+        })
+    }
+}
+#[cfg(target_arch = "wasm32")]
+impl Store {
+    pub fn local()->Self{Self{root:PathBuf::new()}}
+    pub fn load(&self)->io::Result<Save>{
+        let Some(bytes)=crate::platform::web::read(0)? else{return Ok(Save::default());};
+        let save:Save=serde_json::from_slice(&bytes)?;
+        if !save.valid(){return Err(bad());}Ok(save)
+    }
+    pub fn replace(&self,s:&Save)->io::Result<()>{if !s.valid(){return Err(bad());}crate::platform::web::write(0,&serde_json::to_vec(s)?)}
+    pub fn settings(&self,s:&Settings)->io::Result<()>{let mut v=self.load()?;v.settings=s.clone();self.replace(&v)}
+    pub fn scores(&self,s:&Scores)->io::Result<()>{let mut v=self.load()?;v.highscores=s.clone();self.replace(&v)}
+    pub fn backup(&self)->PathBuf{PathBuf::from("GAME HUB / local backup")}
+    pub fn export(&self,s:&Save)->io::Result<()>{crate::platform::web::write(1,&serde_json::to_vec(&Backup{version:1,save:s.clone()})?)}
+    pub fn import(&self)->io::Result<Save>{let bytes=crate::platform::web::read(1)?.ok_or_else(bad)?;
+        let b:Backup=serde_json::from_slice(&bytes)?;if b.version!=1{return Err(bad());}self.replace(&b.save)?;Ok(b.save)}
 }

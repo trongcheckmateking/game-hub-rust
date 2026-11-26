@@ -17,11 +17,7 @@ use hub::{Lobby, LobbyAction};
 use macroquad::prelude::*;
 use settings::Preferences;
 fn seed() -> u64 {
-    use std::time::{SystemTime, UNIX_EPOCH};
-    SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap_or_default()
-        .as_nanos() as u64
+    (macroquad::miniquad::date::now() * 1_000_000.).round() as u64
 }
 fn start(i: usize, n: usize) -> Box<dyn MiniGame> {
     CATALOG[i].start(n, seed())
@@ -55,6 +51,8 @@ pub async fn run() {
     let mut transition = 0.0_f32;
     let mut notice = String::new();
     loop {
+        #[cfg(target_arch = "wasm32")]
+        crate::platform::web::scene(match scene {Scene::Hub=>0,Scene::Tutorial=>1,Scene::Playing=>2,Scene::Paused=>3,Scene::Settings=>4,Scene::End=>5},n,saves.settings.english);
         let before = scene;
         let en = saves.settings.english;
         let lang = |v, e| bi(en, v, e);

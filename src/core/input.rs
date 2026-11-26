@@ -1,4 +1,5 @@
 //! Translate devices to six actions per slot. Keep button edges until a simulation tick.
+#[cfg(not(target_arch = "wasm32"))]
 use gilrs::{Axis, Button, GamepadId, Gilrs};
 use macroquad::prelude::{get_keys_down, get_keys_pressed, KeyCode};
 use std::collections::{BTreeMap, HashSet};
@@ -64,7 +65,7 @@ pub fn allowed_key(code: &str) -> bool {
 }
 pub fn can_bind(slot: usize, action: usize, code: &str, keys: &Bindings) -> bool {
     (slot < 4 && action < 6 && allowed_key(code))
-        && (2..=4).all(|n| {
+        && (1..=4).all(|n| {
             slot >= n
                 || (0..n).all(|p| {
                     (0..6).all(|a| {
@@ -75,7 +76,9 @@ pub fn can_bind(slot: usize, action: usize, code: &str, keys: &Bindings) -> bool
         })
 }
 pub struct Input {
+    #[cfg(not(target_arch = "wasm32"))]
     pads: Option<Gilrs>,
+    #[cfg(not(target_arch = "wasm32"))]
     slots: [Option<GamepadId>; 4],
     previous: [[bool; 6]; 4],
     pending: [PlayerFrame; 4],
@@ -86,7 +89,9 @@ pub struct Input {
 impl Default for Input {
     fn default() -> Self {
         Self {
+            #[cfg(not(target_arch = "wasm32"))]
             pads: Gilrs::new().ok(),
+            #[cfg(not(target_arch = "wasm32"))]
             slots: [None; 4],
             previous: [[false; 6]; 4],
             pending: [PlayerFrame::default(); 4],
@@ -98,7 +103,10 @@ impl Default for Input {
 }
 impl Input {
     pub fn count(&self) -> usize {
-        self.slots.iter().flatten().count()
+        #[cfg(not(target_arch = "wasm32"))]
+        { self.slots.iter().flatten().count() }
+        #[cfg(target_arch = "wasm32")]
+        { crate::platform::web::pads() }
     }
     pub fn poll(&mut self, n: usize, keys: &Bindings) {
         let down: HashSet<_> = get_keys_down()
@@ -109,6 +117,7 @@ impl Input {
             .into_iter()
             .map(|k| format!("{k:?}"))
             .collect();
+        #[cfg(not(target_arch = "wasm32"))]
         if let Some(g) = &mut self.pads {
             while g.next_event().is_some() {}
             for slot in &mut self.slots {
@@ -128,6 +137,7 @@ impl Input {
         let mut start = false;
         for p in 0..4 {
             let mut joy = [false; 6];
+            #[cfg(not(target_arch = "wasm32"))]
             if let (Some(g), Some(id)) = (&self.pads, self.slots[p]) {
                 let pad = g.gamepad(id);
                 joy = [
@@ -140,9 +150,15 @@ impl Input {
                 ];
                 start |= pad.is_pressed(Button::Start);
             }
+            #[cfg(target_arch = "wasm32")]
+            let (bits, taps) = crate::platform::web::input(p);
+            #[cfg(target_arch = "wasm32")]
+            { joy = std::array::from_fn(|a|bits & (1 << a) != 0);start |= (bits | taps) & 64 != 0; }
             for (a, &j) in joy.iter().enumerate() {
                 let v = names(p, a, n, keys);
                 let edge = j && !self.previous[p][a];
+                #[cfg(target_arch = "wasm32")]
+                let edge = edge || taps & (1 << a) != 0;
                 self.menu[a] |= edge;
                 self.previous[p][a] = j;
                 self.pending[p].held[a] = j || v.iter().any(|k| down.contains(k));
