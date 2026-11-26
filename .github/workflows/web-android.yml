@@ -26,6 +26,28 @@ jobs:
         with:
           name: GAME-HUB-Web-Offline
           path: dist/GAME-HUB-Offline.html
+  browser:
+    needs: web
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: GAME-HUB-Web-Offline
+          path: dist
+      - name: Test offline desktop and touchscreen gameplay
+        run: |
+          mkdir -p target
+          npm install --prefix "$RUNNER_TEMP/hub-browser" playwright-core@1.56.1 --no-audit --no-fund
+          export NODE_PATH="$RUNNER_TEMP/hub-browser/node_modules"
+          node scripts/smoke-web.cjs
+          node scripts/smoke-web.cjs mobile
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: GAME-HUB-Web-Gameplay
+          path: target/*.png
+          if-no-files-found: ignore
   android:
     needs: web
     runs-on: ubuntu-latest
