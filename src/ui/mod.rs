@@ -35,6 +35,8 @@ pub async fn run() {
             tex
         })
         .collect();
+    let brand = Texture2D::from_file_with_format(include_bytes!("../../assets/art/icon.png"), Some(ImageFormat::Png));
+    brand.set_filter(FilterMode::Linear);
     let store = Store::local();
     let mut prefs = Preferences::default();
     let mut saves = store.load().unwrap_or_else(|e| {
@@ -105,9 +107,10 @@ pub async fn run() {
         clear_background(INK);
         camera(Vec2::ZERO);
         box_fill(Rect::new(0., 0., 1120., 65.), PANEL);
-        draw_rectangle(44., 28., 25., 7., draw::LIME);
-        draw_rectangle(53., 19., 7., 25., draw::LIME);
-        label(&mono, "GAME HUB", 85., 44., 29, PAPER);
+        draw_texture_ex(&brand, 42., 9., WHITE, DrawTextureParams {
+            dest_size:Some(vec2(46.,46.)), ..Default::default()
+        });
+        label(&mono, "GAME HUB", 99., 44., 29, PAPER);
         label(
             font,
             &format!(
@@ -299,7 +302,7 @@ pub async fn run() {
                 game.render();
                 camera(Vec2::ZERO);
                 draw_rectangle(0., 65., 1120., 655., Color::new(0.025, 0.035, 0.03, 0.83));
-                box_fill(Rect::new(278., 135., 564., 455.), PANEL);
+                nav.panel(Rect::new(278., 135., 564., 455.), 22., draw::EDGE, PANEL, 1.5);
                 let title = if pause {
                     lang("Tạm dừng", "Paused").to_owned()
                 } else {

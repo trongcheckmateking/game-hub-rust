@@ -4,7 +4,7 @@ use crate::{
     games::{Era, CATALOG},
 };
 use macroquad::prelude::{
-    draw_rectangle_lines, draw_texture_ex, get_char_pressed, is_key_pressed, vec2,
+    get_frame_time, draw_texture_ex, get_char_pressed, is_key_pressed, vec2,
     DrawTextureParams, Font, KeyCode, Rect, Texture2D, WHITE,
 };
 #[derive(Default)]
@@ -14,6 +14,11 @@ pub struct Lobby {
     style: usize,
     query: String,
     pub editing: bool,
+    filter: Option<(usize, usize, String)>,
+    matches: Vec<usize>,
+    seats: Vec<String>,
+    lift: [f32; 3],
+    visible: [Option<usize>; 3],
 }
 pub enum LobbyAction {
     None,
@@ -58,15 +63,11 @@ impl Lobby {
             result = LobbyAction::Quit;
         }
         for (i, n) in [0, 1, 2, 3, 4].iter().enumerate() {
-            let s = if *n == 0 {
-                lang("Tất cả", "All").to_owned()
-            } else {
-                format!("{n}P")
-            };
+            let s = [lang("Tất cả", "All"), "1P", "2P", "3P", "4P"][i];
             if nav.button(
                 font,
                 Rect::new(44. + i as f32 * 67., 176., 63., 40.),
-                &s,
+                s,
                 self.party == *n,
             ) {
                 self.party = *n;
@@ -84,11 +85,11 @@ impl Lobby {
         }
         let sr = Rect::new(635., 176., 445., 40.);
         let search = if self.query.is_empty() {
-            lang("Tìm trò chơi…", "Search games…").to_owned()
+            lang("Tìm trò chơi…", "Search games…")
         } else {
-            self.query.clone()
+            self.query.as_str()
         };
-        if nav.button(font, sr, &search, self.editing) {
+        if nav.button(font, sr, search, self.editing) {
             self.editing = !self.editing;
         }
         if self.editing {
@@ -106,16 +107,28 @@ impl Lobby {
         } else {
             while get_char_pressed().is_some() {}
         }
-        let entries: Vec<_> = CATALOG
-            .iter()
-            .enumerate()
-            .filter(|(_, g)| {
-                (self.party == 0 || g.modes.contains(&self.party))
-                    && (self.style == 0 || Era::ALL[self.style - 1] == g.era)
-                    && g.title.to_lowercase().contains(&self.query.to_lowercase())
-            })
-            .collect();
-        if entries.is_empty() {
+        if self.seats.is_empty() {
+            self.seats=CATALOG.iter().map(|g| {
+                let first=g.modes[0];
+                let last=g.modes[g.modes.len()-1];
+                if g.modes.len()==1 { format!("{first}P") }
+                else if g.modes.windows(2).all(|n| n[1]==n[0]+1) { format!("{first}–{last}P") }
+                else { format!("{}P",g.modes.iter().map(ToString::to_string).collect::<Vec<_>>().join("/")) }
+            }).collect();
+        }
+        if !self.filter.as_ref().is_some_and(|(party,style,q)| {
+            *party==self.party && *style==self.style && q==&self.query
+        }) {
+            let query=self.query.to_lowercase();
+            self.matches.clear();
+            self.matches.extend(CATALOG.iter().enumerate().filter_map(|(i,g)| {
+                ((self.party==0 || g.modes.contains(&self.party))
+                    && (self.style==0 || Era::ALL[self.style-1]==g.era)
+                    && (query.is_empty() || g.title.to_lowercase().contains(&query))).then_some(i)
+            }));
+            self.filter=Some((self.party,self.style,self.query.clone()));
+        }
+        if self.matches.is_empty() {
             label(
                 font,
                 lang(
@@ -136,7 +149,7 @@ impl Lobby {
                 *self = Self::default();
             }
         }
-        let pages = entries.len().div_ceil(3);
+        let pages = self.matches.len().div_ceil(3);
         self.page = self.page.min(pages.saturating_sub(1));
         if pages > 1 {
             if nav.button(font, Rect::new(817., 625., 50., 34.), "←", false) {
@@ -154,49 +167,39 @@ impl Lobby {
                 self.page = (self.page + 1) % pages;
             }
         }
-        for (j, (idx, g)) in entries.into_iter().skip(self.page * 3).take(3).enumerate() {
+        for (j, &idx) in self.matches.iter().skip(self.page * 3).take(3).enumerate() {
+            let g=&CATALOG[idx];
             let mode = if g.modes.contains(&self.party) {
                 self.party
             } else {
                 g.modes[0]
             };
-            let seats = g
-                .modes
-                .iter()
-                .map(ToString::to_string)
-                .collect::<Vec<_>>()
-                .join("/");
+            let seats = &self.seats[idx];
             let x = 44. + j as f32 * 352.;
-            let card = Rect::new(x, 251., 333., 359.);
-            box_fill(card, PANEL);
-            draw_texture_ex(
-                &art[idx],
-                x,
-                251.,
-                WHITE,
-                DrawTextureParams {
-                    dest_size: Some(vec2(333., 176.)),
-                    ..Default::default()
-                },
-            );
-            let is_focus = nav.is_next();
-            draw_rectangle_lines(
-                card.x,
-                card.y,
-                card.w,
-                card.h,
-                if is_focus { 4. } else { 1. },
-                if is_focus { LIME } else { EDGE },
-            );
+            let hitbox=Rect::new(x,251.,333.,359.);
+            let focus=nav.is_next();
+            let active=focus || hitbox.contains(pointer());
+            if self.visible[j]!=Some(idx) {
+                self.visible[j]=Some(idx);
+                self.lift[j]=0.;
+            }
+            let target=if active {1.} else {0.};
+            self.lift[j]+=(target-self.lift[j]) * (1.-(-get_frame_time().min(0.1)*16.).exp());
+            let dy=-5.*self.lift[j];
+            let card=Rect::new(x,251.+dy,333.,359.);
+            nav.panel(card,20.,if focus {LIME} else if active {DIM} else {EDGE},PANEL,if focus {2.5} else {1.});
+            draw_texture_ex(&art[idx],x+8.,card.y+8.,WHITE,DrawTextureParams {
+                dest_size:Some(vec2(317.,167.)), ..Default::default()
+            });
             label(
                 font,
-                &format!("{}P   /   {}", seats, g.era.label(en)),
+                &format!("{}   /   {}", seats, g.era.label(en)),
                 x + 16.,
-                458.,
+                458. + dy,
                 17,
                 LIME,
             );
-            label(font, g.title, x + 16., 501., 34, PAPER);
+            label(font, g.title, x + 16., 501. + dy, 34, PAPER);
             let level = if g.difficulty == 1 {
                 lang("Dễ", "Easy")
             } else {
@@ -206,7 +209,7 @@ impl Lobby {
                 font,
                 &format!("{}  ·  {}", lang("Độ khó", "Difficulty"), level),
                 x + 16.,
-                537.,
+                537. + dy,
                 18,
                 DIM,
             );
@@ -218,12 +221,12 @@ impl Lobby {
                 font,
                 &format!("{}  {}", lang("Kỷ lục", "Best"), best),
                 x + 16.,
-                582.,
+                582. + dy,
                 20,
                 PAPER,
             );
-            label(font, "→", x + 282., 584., 25, LIME);
-            if nav.hit(card) {
+            label(font, "→", x + 282., 584. + dy, 25, LIME);
+            if nav.hit(hitbox) {
                 self.editing = false;
                 result = LobbyAction::Choose(idx, mode);
             }

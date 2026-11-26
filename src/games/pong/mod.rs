@@ -7,6 +7,8 @@ pub struct Pong {
     pads: [f32; 2],
     move_y: [f32; 2],
     ball: Vec2,
+    previous_ball: Vec2,
+    previous_pads: [f32; 2],
     velocity: Vec2,
     delay: f32,
     seed: u64,
@@ -14,6 +16,8 @@ pub struct Pong {
 impl Pong {
     fn serve(&mut self, dir: f32) {
         self.ball = vec2(480., 270.);
+        self.previous_ball = self.ball;
+        self.previous_pads = self.pads;
         let angle = (next_random(&mut self.seed) % 75) as f32 / 100. - 0.37;
         self.velocity = vec2(angle.cos() * dir, angle.sin()) * 345.;
         self.delay = 0.85;
@@ -45,6 +49,8 @@ impl MiniGame for Pong {
         if !self.round.running() {
             return;
         }
+        self.previous_ball = self.ball;
+        self.previous_pads = self.pads;
         for (i, y) in self.pads.iter_mut().enumerate() {
             *y = (*y + self.move_y[i] * 440. * dt).clamp(73., 467.);
         }
@@ -83,7 +89,8 @@ impl MiniGame for Pong {
             }
         }
     }
-    fn render(&self) {
+    fn render(&self) { self.render_interpolated(1.); }
+    fn render_interpolated(&self, alpha: f32) {
         draw_rectangle(0., 0., 960., 540., Color::from_hex(0x172c40));
         let line = Color::from_hex(0x426078);
         draw_rectangle_lines(22., 18., 916., 504., 3., line);
@@ -92,9 +99,16 @@ impl MiniGame for Pong {
             draw_rectangle(479., 19. + j as f32 * 21., 2., 9., line);
         }
         for (i, y) in self.pads.iter().enumerate() {
-            draw_rectangle([42., 906.][i], *y - 54., 12., 108., super::color(i));
+            let y = self.previous_pads[i] + (y - self.previous_pads[i]) * alpha;
+            let x = [48.,912.][i];
+            draw_line(x,y-48.,x,y+48.,12.,super::color(i));
+            draw_circle(x,y-48.,6.,super::color(i));
+            draw_circle(x,y+48.,6.,super::color(i));
         }
-        draw_circle(self.ball.x, self.ball.y, 8., Color::from_hex(0xffecb8));
+        let ball = self.previous_ball.lerp(self.ball,alpha);
+        draw_circle(ball.x+1.,ball.y+2.,8.5,Color::from_hex(0x102234));
+        draw_circle(ball.x,ball.y,8.,Color::from_hex(0xffecb8));
+        draw_circle(ball.x-2.,ball.y-2.,2.4,WHITE);
     }
 }
 #[cfg(test)]

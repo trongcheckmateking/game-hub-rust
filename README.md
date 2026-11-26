@@ -4,6 +4,7 @@ Arcade offline cho **1–4 người** trên cùng một máy. Chọn số ngư�
 
 | Game | Thời kỳ trong hub | Số người | Kiểu chơi |
 |---|---|---|---|
+| Air Hockey | Cổ điển | 2 | Di chuyển tay gạt trong nửa sân, đẩy đĩa qua khe thành. Đội ghi 5 bàn trước thắng. |
 | Ur Sprint | Cổ đại | 1–2 | Đua 3 quân, tung hạt, bắt quân và tận dụng ô hoa. Solo đấu máy. |
 | Bốc sỏi | Dân gian | 1–4 | Lấy 1–3 viên mỗi lượt. Người lấy viên cuối thắng. Solo đấu máy. |
 | Caro | Cổ điển | 1–2 | Nối năm quân, solo đấu máy hoặc thay phiên. |
@@ -16,6 +17,10 @@ Arcade offline cho **1–4 người** trên cùng một máy. Chọn số ngư�
 | Neon Hill | Hiện đại | 2–4 | Đứng một mình trong vùng để ghi điểm và tăng tốc khi cần. |
 
 Ur Sprint là biến thể rút gọn do dự án thiết kế, lấy cảm hứng từ bàn cờ Ur của Lưỡng Hà. Nhãn thời kỳ giúp tìm nguồn cảm hứng hoặc phong cách trò chơi. Luật mỗi bản có trong tutorial.
+
+## Bản 0.3
+
+Bộ sưu tập có 11 trò. Mỗi thẻ có ảnh vẽ riêng nhúng trong game. Thẻ nhấc nhẹ khi chọn bằng chuột hoặc tay cầm. Air Hockey và Pong nội suy vị trí giữa các tick vật lý. Snake Duel chuyển động giữa các ô trong khi luật va chạm vẫn theo ô. Toàn bộ hiệu ứng hoạt động offline.
 
 ## Web và Android
 
@@ -95,7 +100,7 @@ game-hub-rust/
 │   ├── games/
 │   │   ├── mod.rs               Registry, metadata, factory
 │   │   ├── table.rs             Hàm vẽ dùng chung cho nhóm trò bàn cờ
-│   │   └── <game>/mod.rs        Mười module game trong bảng danh mục phía trên
+│   │   └── <game>/mod.rs        Mười một module game trong bảng danh mục phía trên
 │   └── ui/                      Lobby, widgets, cài đặt, vòng lặp scene
 ├── assets/                      Ảnh, font, WAV nhúng sẵn
 ├── data/                        Ví dụ dữ liệu ở trạng thái ban đầu

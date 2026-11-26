@@ -12,6 +12,8 @@ const path=require('path');
  async function click(x,y){const r=await page.locator('#glcanvas').boundingBox();const s=Math.min(r.width/1120,r.height/720);const px=r.x+(r.width-1120*s)/2+x*s,py=r.y+(r.height-720*s)/2+y*s;
  if(mobile) {const cdp=await ctx.newCDPSession(page);await cdp.send('Input.dispatchTouchEvent',{type:'touchStart',touchPoints:[{x:px,y:py}]});await page.waitForTimeout(85);await cdp.send('Input.dispatchTouchEvent',{type:'touchEnd',touchPoints:[]});await cdp.detach();}else await page.mouse.click(px,py,{delay:75});await page.waitForTimeout(150);}
  async function scene(s){await page.waitForFunction(v=>document.body.dataset.scene===v,s,{timeout:6000});}
+ await page.waitForTimeout(220);
+ await page.screenshot({path:'target/hub-'+(mobile?'mobile':'web')+'.png'});
  await click(140,196); // solo
  await click(200,355);await scene('tutorial');await click(153,621);await scene('playing'); // Ur
  if(mobile){await page.locator('.p0 button').filter({hasText:/^A$/}).tap();}else await page.keyboard.press('KeyF');
@@ -23,6 +25,14 @@ const path=require('path');
  await page.screenshot({path:'target/stones-'+(mobile?'mobile':'web')+'.png'});
  if(mobile){await page.locator('.p0 button').filter({hasText:/^A$/}).tap();await page.locator('.p1 button').filter({hasText:/^A$/}).tap();}else{await page.keyboard.press('KeyF');await page.keyboard.press('Enter');}
  await page.locator('#privacy').click();await page.waitForFunction(()=>document.querySelector('#policy').open);await page.locator('#close-policy').click();
- console.log('offline',mobile?'mobile':'desktop','Ur 1P, stones 3P, pause, privacy passed',issues);
+ await scene('paused');await click(498,495);await scene('hub');
+ await click(72,196); // All -> page 4, second card: Air Hockey
+ for(let i=0;i<3;i++)await click(987,640);
+ await click(553,354);await scene('tutorial');await click(153,621);await scene('playing');
+ if(mobile && await page.locator('#controls .pad').count()!==2)throw Error('2P hockey pads missing');
+ if(mobile){await page.locator('.p0 button').filter({hasText:'→'}).tap();}
+ else {await page.keyboard.down('KeyD');await page.waitForTimeout(350);await page.keyboard.up('KeyD');}
+ await page.waitForTimeout(500);await page.screenshot({path:'target/hockey-'+(mobile?'mobile':'web')+'.png'});
+ console.log('offline',mobile?'mobile':'desktop','Ur 1P, stones 3P, Air Hockey 2P, pause, privacy passed',issues);
  }finally{await b.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});

@@ -1,6 +1,6 @@
 # Android và Google Play
 
-APK debug dùng để cài thử, có application ID `dev.trong.gamehub.debug`. AAB release dùng `dev.trong.gamehub`, target SDK 36, min SDK 26. Chủ tài khoản cần xác nhận tên gói trước lần phát hành đầu tiên. Mỗi lần cập nhật phải tăng versionCode. [Workflow Web và Android](https://github.com/trongcheckmateking/game-hub-rust/actions/workflows/web-android.yml)
+Bản 0.3.0 dùng versionCode 3. APK debug dùng để cài thử, có application ID `dev.trong.gamehub.debug`. AAB release dùng `dev.trong.gamehub`, target SDK 36, min SDK 26. Chủ tài khoản cần xác nhận tên gói trước lần phát hành đầu tiên. Mỗi lần cập nhật phải tăng versionCode. [Workflow Web và Android](https://github.com/trongcheckmateking/game-hub-rust/actions/workflows/web-android.yml)
 
 ## Tự build
 

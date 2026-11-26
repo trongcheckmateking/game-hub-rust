@@ -69,7 +69,41 @@ pub fn fitted(font: &Font, s: &str, r: Rect, size: u16, color: Color) {
 pub fn box_fill(r: Rect, c: Color) {
     draw_rectangle(r.x, r.y, r.w, r.h, c);
 }
+// A single antialiased mask serves every panel size. Only its center and edges stretch.
+struct Corners(Texture2D);
+impl Corners {
+    fn new() -> Self {
+        const SIDE: usize = 32;
+        let mut pixels = [255u8; SIDE * SIDE * 4];
+        for y in 0..SIDE {
+            for x in 0..SIDE {
+                let p = vec2(x as f32 + 0.5, y as f32 + 0.5);
+                let center = p.clamp(vec2(15.,15.),vec2(17.,17.));
+                pixels[(y*SIDE+x)*4+3] = ((15.5-p.distance(center)).clamp(0.,1.)*255.).round() as u8;
+            }
+        }
+        let mask=Texture2D::from_rgba8(32,32,&pixels);
+        mask.set_filter(FilterMode::Linear);
+        Self(mask)
+    }
+    fn fill(&self, r: Rect, radius: f32, tint: Color) {
+        let radius=radius.min(r.w*0.5).min(r.h*0.5);
+        let xs=[r.x,r.x+radius,r.x+r.w-radius,r.x+r.w];
+        let ys=[r.y,r.y+radius,r.y+r.h-radius,r.y+r.h];
+        let uv=[0.,15.,17.,32.];
+        for row in 0..3 {
+            for col in 0..3 {
+                draw_texture_ex(&self.0,xs[col],ys[row],tint,DrawTextureParams {
+                    dest_size:Some(vec2(xs[col+1]-xs[col],ys[row+1]-ys[row])),
+                    source:Some(Rect::new(uv[col],uv[row],uv[col+1]-uv[col],uv[row+1]-uv[row])),
+                    ..Default::default()
+                });
+            }
+        }
+    }
+}
 pub struct Nav {
+    corners: Corners,
     pub focus: usize,
     count: usize,
     total: usize,
@@ -78,6 +112,7 @@ pub struct Nav {
 impl Nav {
     pub fn new() -> Self {
         Self {
+            corners: Corners::new(),
             focus: 0,
             count: 0,
             total: 0,
@@ -116,27 +151,16 @@ impl Nav {
         }
         self.activate && self.focus == idx
     }
+    pub fn panel(&self, r: Rect, radius: f32, edge: Color, fill: Color, stroke: f32) {
+        self.corners.fill(r, radius, edge);
+        self.corners.fill(Rect::new(r.x+stroke,r.y+stroke,r.w-2.*stroke,r.h-2.*stroke),
+            radius-stroke,fill);
+    }
     pub fn button(&mut self, font: &Font, r: Rect, title: &str, active: bool) -> bool {
         let selected = self.focus == self.count;
         let over = r.contains(pointer());
-        box_fill(
-            r,
-            if active {
-                LIME
-            } else if over {
-                EDGE
-            } else {
-                PANEL
-            },
-        );
-        draw_rectangle_lines(
-            r.x,
-            r.y,
-            r.w,
-            r.h,
-            if selected { 3. } else { 1. },
-            if selected { PAPER } else { EDGE },
-        );
+        let fill = if active { LIME } else if over { EDGE } else { PANEL };
+        self.panel(r, 12., if selected { PAPER } else { EDGE }, fill, if selected { 2. } else { 1. });
         fitted(font, title, r, 19, if active { INK } else { PAPER });
         self.hit(r)
     }
