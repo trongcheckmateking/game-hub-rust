@@ -1,8 +1,8 @@
 //! Translate devices to six actions per slot. Keep button edges until a simulation tick.
 #[cfg(not(target_arch = "wasm32"))]
 use gilrs::{Axis, Button, GamepadId, Gilrs};
-use macroquad::prelude::{get_keys_down, get_keys_pressed, KeyCode};
-use std::collections::{BTreeMap, HashSet};
+use macroquad::prelude::{is_key_down, is_key_pressed, KeyCode};
+use std::collections::BTreeMap;
 pub const ACTIONS: [&str; 6] = ["up", "down", "left", "right", "a", "b"];
 pub type Bindings = BTreeMap<String, String>;
 #[derive(Clone, Copy, Default, Debug)]
@@ -75,7 +75,41 @@ pub fn can_bind(slot: usize, action: usize, code: &str, keys: &Bindings) -> bool
                 })
         })
 }
+// Resolve saved string bindings once per configuration, rather than formatting keys each frame.
+fn key_code(name: &str) -> Option<KeyCode> {
+    macro_rules! keys {
+        ($($key:ident),+) => { match name {
+            $(stringify!($key) => Some(KeyCode::$key),)+
+            _ => None,
+        } };
+    }
+    keys!(A, B, C, D, E, F, G, H, I, J, K, L, M, N, O, P, Q, R, S, T, U, V, W, X, Y, Z,
+          Key0, Key1, Key2, Key3, Key4, Key5, Key6, Key7, Key8, Key9,
+          Kp0, Kp1, Kp2, Kp3, Kp4, Kp5, Kp6, Kp7, Kp8, Kp9, KpEnter, KpDecimal,
+          KpAdd, KpSubtract, Up, Down, Left, Right, Enter, Space, LeftShift, RightShift,
+          Comma, Period, Slash, Semicolon, Apostrophe, Minus, Equal, LeftBracket, RightBracket)
+}
+
+#[derive(Default)]
+struct Keyboard {
+    party: usize,
+    bindings: Bindings,
+    codes: [[Vec<KeyCode>; 6]; 4],
+}
+impl Keyboard {
+    fn configure(&mut self, party: usize, bindings: &Bindings) {
+        if self.party == party && self.bindings == *bindings {
+            return;
+        }
+        self.party = party;
+        self.bindings.clone_from(bindings);
+        self.codes = std::array::from_fn(|p| std::array::from_fn(|a| {
+            names(p, a, party, bindings).iter().filter_map(|name| key_code(name)).collect()
+        }));
+    }
+}
 pub struct Input {
+    keyboard: Keyboard,
     #[cfg(not(target_arch = "wasm32"))]
     pads: Option<Gilrs>,
     #[cfg(not(target_arch = "wasm32"))]
@@ -91,6 +125,7 @@ impl Default for Input {
         Self {
             #[cfg(not(target_arch = "wasm32"))]
             pads: Gilrs::new().ok(),
+            keyboard: Keyboard::default(),
             #[cfg(not(target_arch = "wasm32"))]
             slots: [None; 4],
             previous: [[false; 6]; 4],
@@ -113,14 +148,7 @@ impl Input {
         }
     }
     pub fn poll(&mut self, n: usize, keys: &Bindings) {
-        let down: HashSet<_> = get_keys_down()
-            .into_iter()
-            .map(|k| format!("{k:?}"))
-            .collect();
-        let pressed: HashSet<_> = get_keys_pressed()
-            .into_iter()
-            .map(|k| format!("{k:?}"))
-            .collect();
+        self.keyboard.configure(n, keys);
         #[cfg(not(target_arch = "wasm32"))]
         if let Some(g) = &mut self.pads {
             while g.next_event().is_some() {}
@@ -162,14 +190,14 @@ impl Input {
                 start |= (bits | taps) & 64 != 0;
             }
             for (a, &j) in joy.iter().enumerate() {
-                let v = names(p, a, n, keys);
+                let v = &self.keyboard.codes[p][a];
                 let edge = j && !self.previous[p][a];
                 #[cfg(target_arch = "wasm32")]
                 let edge = edge || taps & (1 << a) != 0;
                 self.menu[a] |= edge;
                 self.previous[p][a] = j;
-                self.pending[p].held[a] = j || v.iter().any(|k| down.contains(k));
-                self.pending[p].pressed[a] |= edge || v.iter().any(|k| pressed.contains(k));
+                self.pending[p].held[a] = j || v.iter().copied().any(is_key_down);
+                self.pending[p].pressed[a] |= edge || v.iter().copied().any(is_key_pressed);
             }
         }
         self.start = start && !self.prev_start;
@@ -188,4 +216,21 @@ impl Input {
 }
 pub fn pressed(k: KeyCode) -> bool {
     macroquad::prelude::is_key_pressed(k)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    #[test]
+    fn keyboard_refreshes_when_seats_or_bindings_change() {
+        let mut layout = Keyboard::default();
+        let mut bindings = Bindings::new();
+        layout.configure(2, &bindings);
+        assert!(layout.codes[1][4].contains(&KeyCode::K));
+        layout.configure(3, &bindings);
+        assert!(!layout.codes[1][4].contains(&KeyCode::K));
+        bindings.insert("2.0".into(), "Z".into());
+        layout.configure(3, &bindings);
+        assert_eq!(layout.codes[2][0], [KeyCode::Z]);
+    }
 }

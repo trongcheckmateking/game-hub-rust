@@ -29,7 +29,11 @@ pub async fn run() {
         .expect("bundled mono");
     let art: Vec<_> = CATALOG
         .iter()
-        .map(|g| Texture2D::from_file_with_format(g.art, Some(ImageFormat::Png)))
+        .map(|g| {
+            let tex = Texture2D::from_file_with_format(g.art, Some(ImageFormat::Png));
+            tex.set_filter(FilterMode::Linear);
+            tex
+        })
         .collect();
     let store = Store::local();
     let mut prefs = Preferences::default();
@@ -239,7 +243,7 @@ pub async fn run() {
                     for _ in 0..clock.ticks(get_frame_time()) {
                         game.handle_input(&devices.take()[..n]);
                         game.update(STEP);
-                        for fx in std::mem::take(&mut game.round_mut().cues) {
+                        for fx in game.round_mut().cues.drain(..) {
                             audio.cue(fx, &saves.settings);
                         }
                         if game.is_game_over() {
@@ -264,7 +268,7 @@ pub async fn run() {
                     }
                 }
                 camera(vec2(80., 107.));
-                game.render();
+                game.render_interpolated(clock.alpha());
                 camera(Vec2::ZERO);
                 label(font, CATALOG[idx].title, 81., 95., 24, PAPER);
                 for (p, s) in game.get_score().iter().enumerate() {

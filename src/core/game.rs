@@ -49,6 +49,7 @@ pub trait MiniGame {
     fn handle_input(&mut self, players: &[PlayerFrame]);
     fn update(&mut self, dt: f32);
     fn render(&self);
+    fn render_interpolated(&self, _alpha: f32) { self.render(); }
     fn round(&self) -> &Round;
     fn round_mut(&mut self) -> &mut Round;
     fn pause(&mut self) {

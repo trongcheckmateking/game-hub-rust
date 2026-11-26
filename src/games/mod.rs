@@ -1,3 +1,4 @@
+pub mod air_hockey;
 pub mod beacon;
 pub mod caro;
 pub mod echo;
@@ -134,4 +135,22 @@ pub const CATALOG: &[Entry] = &[
     Entry{ id:"echo",title:"Echo Steps",modes:&[1, 2, 3, 4],era:Era::Modern,difficulty:2,art:include_bytes!("../../assets/art/echo.png"),music:include_bytes!("../../assets/audio/echo.wav"),rules:[&["Xem các mũi tên sáng lần lượt, rồi bấm lại đúng thứ tự.","Mỗi bước đúng +1. Sai thì đến lượt tiếp theo.","Qua 5 cấp, ai nhớ đúng nhiều nhất thắng. Có thể chuyền máy."],&["Watch the arrows light up, then repeat the sequence.","Each correct direction scores 1. A mistake ends your turn.","Highest score over five levels wins. Pass the device between seats."]],factory:||Box::new(echo::Echo::default()) },
     Entry{ id:"beacon",title:"Beacon Rush",modes:&[1, 2, 3, 4],era:Era::Modern,difficulty:1,art:include_bytes!("../../assets/art/beacon.png"),music:include_bytes!("../../assets/audio/beacon.wav"),rules:[&["Mỗi người dùng nút A riêng. Chờ đèn chuyển từ đỏ sang xanh rồi bấm.","Bấm sớm hoặc quá 1,2 giây được 0 ở lượt đó.","Thi 5 lượt. Phản xạ nhanh được nhiều điểm hơn."],&["Each seat uses its own A. Wait for the light to turn green, then tap.","A false start or a reaction later than 1.2 seconds scores zero for that heat.","Five heats. Faster valid reactions earn more points."]],factory:||Box::new(beacon::Beacon::default()) },
     Entry{ id:"hill",title:"Neon Hill",modes:&[2, 3, 4],era:Era::Modern,difficulty:2,art:include_bytes!("../../assets/art/hill.png"),music:include_bytes!("../../assets/audio/hill.wav"),rules:[&["Dùng bốn hướng để chạy, A để tăng tốc ngắn.","Đứng một mình trong vòng được 1 điểm mỗi nửa giây. Có tranh chấp thì dừng tính.","Vòng đổi chỗ mỗi 6 giây. Sau 36 giây, người nhiều điểm nhất thắng."],&["Move in four directions; A gives a short sprint.","Occupy the circle alone for 1 point per half-second. Contested time earns nothing.","The hill moves every six seconds. Highest score at 36 seconds wins."]],factory:||Box::new(hill::Hill::default()) },
+    Entry {
+        id: "air-hockey",
+        title: "Air Hockey",
+        modes: &[2],
+        era: Era::Classic,
+        difficulty: 1,
+        art: include_bytes!("../../assets/art/air-hockey.png"),
+        music: include_bytes!("../../assets/audio/air-hockey.wav"),
+        rules: [
+            &["Di chuyển tay gạt bằng bốn hướng trong nửa sân của mình.",
+              "Đón đĩa rồi đẩy về khe thành đối thủ. Tay gạt đang di chuyển đánh mạnh hơn.",
+              "Ghi 5 bàn trước để thắng."],
+            &["Move your striker in four directions inside your half.",
+              "Strike the puck into the goal opening. A moving striker adds speed.",
+              "First to five goals wins."],
+        ],
+        factory: || Box::new(air_hockey::AirHockey::default()),
+    },
 ];

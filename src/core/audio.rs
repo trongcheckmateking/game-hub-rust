@@ -14,6 +14,7 @@ macro_rules! clip {
 pub struct Audio {
     sounds: HashMap<&'static str, Sound>,
     track: &'static str,
+    volume: f32,
 }
 impl Audio {
     pub async fn load(tracks: impl IntoIterator<Item = (&'static str, &'static [u8])>) -> Self {
@@ -35,9 +36,10 @@ impl Audio {
                 sounds.insert(k, s);
             }
         }
-        Self { sounds, track: "" }
+        Self { sounds, track: "", volume: 0.0 }
     }
     pub fn music(&mut self, k: &'static str, s: &Settings) {
+        let volume = if s.muted { 0.0 } else { s.bgm };
         if self.track != k {
             if let Some(old) = self.sounds.get(self.track) {
                 stop_sound(old);
@@ -48,13 +50,16 @@ impl Audio {
                     track,
                     PlaySoundParams {
                         looped: true,
-                        volume: if s.muted { 0.0 } else { s.bgm },
+                        volume,
                     },
                 );
             }
-        } else if let Some(track) = self.sounds.get(k) {
-            set_sound_volume(track, if s.muted { 0.0 } else { s.bgm });
+        } else if self.volume != volume {
+            if let Some(track) = self.sounds.get(k) {
+                set_sound_volume(track, volume);
+            }
         }
+        self.volume = volume;
     }
     pub fn effect(&self, k: &str, s: &Settings) {
         if !s.muted {
