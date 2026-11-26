@@ -5,13 +5,20 @@ pub const EDGE: Color = Color::new(0.24, 0.30, 0.29, 1.);
 pub const PAPER: Color = Color::new(0.94, 0.95, 0.90, 1.);
 pub const DIM: Color = Color::new(0.69, 0.75, 0.71, 1.);
 pub const LIME: Color = Color::new(0.76, 0.94, 0.50, 1.);
+fn display_camera(offset: Vec2) -> Camera2D {
+    let mut camera = Camera2D::from_display_rect(Rect::new(-offset.x, -offset.y, 1120., 720.));
+    // Macroquad 0.4.14 applies its own Y flip when targeting the window.
+    camera.zoom.y = camera.zoom.y.abs();
+    camera
+}
+
 pub fn camera(offset: Vec2) {
     let w = screen_width();
     let h = screen_height();
     let scale = (w / 1120.).min(h / 720.);
     let rw = (1120. * scale).round() as i32;
     let rh = (720. * scale).round() as i32;
-    let mut c = Camera2D::from_display_rect(Rect::new(-offset.x, -offset.y, 1120., 720.));
+    let mut c = display_camera(offset);
     c.viewport = Some((
         ((w as i32 - rw) / 2),
         ((h as i32 - rh) / 2),
@@ -139,5 +146,22 @@ pub fn bi(en: bool, vi: &'static str, english: &'static str) -> &'static str {
         english
     } else {
         vi
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use macroquad::camera::Camera;
+
+    #[test]
+    fn window_camera_agrees_with_top_left_pointer_coordinates() {
+        for offset in [Vec2::ZERO, vec2(80., 107.)] {
+            let matrix = display_camera(offset).matrix();
+            let top = matrix.transform_point3((-offset).extend(0.));
+            let bottom = matrix.transform_point3((vec2(1120., 720.) - offset).extend(0.));
+            assert!(top.abs_diff_eq(vec3(-1., 1., 0.), 0.0001));
+            assert!(bottom.abs_diff_eq(vec3(1., -1., 0.), 0.0001));
+        }
     }
 }
