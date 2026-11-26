@@ -64,6 +64,12 @@
     if(!window.ResizeObserver)requestAnimationFrame(()=>window.dispatchEvent(new Event('resize')));
   }
   miniquad_add_plugin({name:'gamehub',version:1,register_plugin(imports){Object.assign(imports.env,{
+    // Keep touch controls inside fullscreen. A browser may decline outside a user gesture.
+    sapp_set_fullscreen(want){
+      if(!document.fullscreenEnabled || Boolean(document.fullscreenElement)===Boolean(want))return;
+      const request=want?document.documentElement.requestFullscreen():document.exitFullscreen();
+      request?.catch(()=>{});
+    },
     hub_buttons:buttons,hub_pad_count:()=>connected,
     hub_edges(p){const n=edges[p];edges[p]=0;return n;},hub_scene:syncScene,
     hub_read(slot,addr,cap){try{const s=localStorage.getItem(keys[slot]);if(s===null)return -1;if(s.length>65536)return -2;
