@@ -69,16 +69,19 @@
       const bytes=encoder.encode(s);if(addr){if(bytes.length>cap)return -2;new Uint8Array(wasm_memory.buffer,addr,bytes.length).set(bytes);}return bytes.length;}catch{return -2;}},
     hub_write(slot,addr,len){try{if(len>65536||!keys[slot])return 0;localStorage.setItem(keys[slot],decoder.decode(new Uint8Array(wasm_memory.buffer,addr,len)));return 1;}catch{return 0;}}
   });}});
+  if(window.ResizeObserver){
+    new ResizeObserver(()=>window.dispatchEvent(new Event('resize'))).observe(document.querySelector('main'));
+  }
   const policy=document.querySelector('#policy');pause.onclick=()=>{edges[0]|=64;};
   document.querySelector('#privacy').onclick=()=>{if(lastScene==='playing')edges[0]|=64;policy.showModal();};
-  document.querySelector('#close-policy').onclick=()=>{policy.close();canvas.focus();};
+  document.querySelector('#close-policy').onclick=()=>{policy.close();canvas.focus({preventScroll:true});};
   document.addEventListener('visibilitychange',()=>{if(document.hidden){active.clear();if(lastScene==='playing')edges[0]|=64;}});
   const btn=document.querySelector('#start');
   btn.onclick=()=>{
     btn.disabled=true;document.querySelector('#status').textContent='Đang tải / Loading…';
     if(!window.WebAssembly || !window.WebGLRenderingContext){document.querySelector('#status').textContent='Cần WebGL và WebAssembly / Update your browser or Android System WebView.';return;}
     load(typeof GAME_HUB_WASM==='undefined'?'game-hub.wasm':URL.createObjectURL(new Blob([Uint8Array.from(atob(GAME_HUB_WASM),c=>c.charCodeAt(0))],{type:'application/wasm'})));
-    const timer=setInterval(()=>{if(lastScene){clearInterval(timer);document.querySelector('#welcome').hidden=true;canvas.focus();}},50);
+    const timer=setInterval(()=>{if(lastScene){clearInterval(timer);document.querySelector('#welcome').hidden=true;canvas.focus({preventScroll:true});}},50);
     setTimeout(()=>{if(!lastScene){clearInterval(timer);document.querySelector('#status').textContent='Không mở được game. Hãy tải lại hoặc cập nhật trình duyệt / WebView.';}},30000);
   };
   btn.disabled=false;

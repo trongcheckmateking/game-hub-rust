@@ -9,3 +9,9 @@
 footer button,.pad button{border-radius:11px;background:#223936;border-color:#4d6560;transition:background-color 90ms}
 .pad button:active{background:#4d7467}
 @media(prefers-reduced-motion:reduce){button,#start,.pad button{transition:none}#start:active{transform:none}}
+/* Keep the canvas inside the usable screen when touch controls appear or rotate. */
+html,body{overflow:hidden;overscroll-behavior:none}
+body{height:100dvh}
+main{min-width:0}
+canvas{position:absolute;inset:0}
+#controls,footer{flex:none}

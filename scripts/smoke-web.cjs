@@ -32,7 +32,16 @@ const path=require('path');
  if(mobile && await page.locator('#controls .pad').count()!==2)throw Error('2P hockey pads missing');
  if(mobile){await page.locator('.p0 button').filter({hasText:'→'}).tap();}
  else {await page.keyboard.down('KeyD');await page.waitForTimeout(350);await page.keyboard.up('KeyD');}
- await page.waitForTimeout(500);await page.screenshot({path:'target/hockey-'+(mobile?'mobile':'web')+'.png'});
+ await page.waitForTimeout(500);
+ if(mobile){
+   const layout=await page.evaluate(()=>{
+     const canvas=document.querySelector('#glcanvas'),box=canvas.getBoundingClientRect(),controls=document.querySelector('#controls').getBoundingClientRect();
+     return {top:box.top,bottom:box.bottom,padTop:controls.top,padBottom:controls.bottom,screen:innerHeight,scroll:scrollY,buffer:canvas.height,css:canvas.clientHeight};
+   });
+   if(Math.abs(layout.top)>1 || layout.scroll>1 || Math.abs(layout.bottom-layout.padTop)>2 || layout.padBottom>layout.screen+2 || Math.abs(layout.buffer-layout.css)>1)
+     throw Error('Canvas or touch controls clipped: '+JSON.stringify(layout));
+ }
+ await page.screenshot({path:'target/hockey-'+(mobile?'mobile':'web')+'.png'});
  console.log('offline',mobile?'mobile':'desktop','Ur 1P, stones 3P, Air Hockey 2P, pause, privacy passed',issues);
  }finally{await b.close();}
 })().catch(e=>{console.error(e.message);process.exitCode=1;});
